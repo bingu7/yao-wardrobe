@@ -1,0 +1,47 @@
+<view class="page">
+  <view class="eyebrow">CLOSET INDEX</view>
+  <view class="title">衣橱统计</view>
+  <view class="subtitle">看看衣柜里的数量、花费和使用情况</view>
+
+  <view class="summary-grid section">
+    <view class="summary-card card">
+      <text class="value">{{summary.totalCount}}</text>
+      <text class="label">总件数</text>
+    </view>
+    <view class="summary-card card">
+      <text class="value">¥{{summary.totalPrice}}</text>
+      <text class="label">总花费</text>
+    </view>
+    <view class="summary-card card">
+      <text class="value">¥{{summary.averagePrice}}</text>
+      <text class="label">平均单价</text>
+    </view>
+    <view class="summary-card card">
+      <text class="value">{{summary.idleCount}}</text>
+      <text class="label">闲置数量</text>
+    </view>
+    <view class="summary-card card">
+      <text class="value">{{summary.totalWearCount}}</text>
+      <text class="label">穿着总次数</text>
+    </view>
+    <view class="summary-card card">
+      <text class="value">{{summary.wornItemCount}}</text>
+      <text class="label">已穿过衣物</text>
+    </view>
+    <view class="summary-card card wide">
+      <text class="value">¥{{summary.averageCostPerWear}}</text>
+      <text class="label">平均单次穿着成本</text>
+    </view>
+  </view>
+
+  <view class="category-card card section">
+    <view class="block-title">分类数量</view>
+    <view wx:for="{{summary.categoryCounts}}" wx:key="category" class="category-row">
+      <text>{{item.category}}</text>
+      <view class="bar-wrap">
+        <view class="bar" style="width: {{item.percent}}%;"></view>
+      </view>
+      <text class="count">{{item.count}}</text>
+    </view>
+  </view>
+</view>

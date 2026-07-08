@@ -1,0 +1,72 @@
+<view class="page" wx:if="{{item}}">
+  <view class="detail-image card">
+    <image wx:if="{{item.imageUrl}}" class="image" src="{{item.imageUrl}}" mode="aspectFill" />
+    <view wx:else class="image-placeholder">{{item.category}}</view>
+  </view>
+
+  <view class="detail-header">
+    <view>
+      <view class="eyebrow">WARDROBE PIECE</view>
+      <view class="name">{{item.name}}</view>
+      <view class="muted">{{item.category}}</view>
+    </view>
+    <view wx:if="{{item.price}}" class="price">¥{{item.price}}</view>
+  </view>
+
+  <view class="info card section">
+    <view class="row">
+      <text class="key">颜色</text>
+      <text class="value">{{item.color || '未填写'}}</text>
+    </view>
+    <view class="row">
+      <text class="key">季节</text>
+      <text class="value">{{seasonText || '未填写'}}</text>
+    </view>
+    <view class="row">
+      <text class="key">购买时间</text>
+      <text class="value">{{item.purchaseDate || '未填写'}}</text>
+    </view>
+    <view class="row">
+      <text class="key">状态</text>
+      <text class="value">{{item.status || '未填写'}}</text>
+    </view>
+    <view class="row">
+      <text class="key">场合</text>
+      <text class="value">{{occasionText || '未填写'}}</text>
+    </view>
+    <view class="note-row">
+      <text class="key">备注</text>
+      <text class="note">{{item.note || '未填写'}}</text>
+    </view>
+  </view>
+
+  <view class="wear-card card section">
+    <view class="wear-grid">
+      <view>
+        <text class="wear-value">{{item.wearCount || 0}}</text>
+        <text class="wear-label">穿着次数</text>
+      </view>
+      <view>
+        <text class="wear-value">{{item.lastWornDate || '未记录'}}</text>
+        <text class="wear-label">最近穿着</text>
+      </view>
+      <view>
+        <text class="wear-value">¥{{costPerWear}}</text>
+        <text class="wear-label">单次成本</text>
+      </view>
+    </view>
+    <button class="primary-button worn-button" bindtap="markWornToday">今天穿了</button>
+  </view>
+
+  <view class="actions">
+    <button class="ghost-button" bindtap="editItem">编辑</button>
+    <button class="delete-button" bindtap="confirmDelete">删除</button>
+  </view>
+</view>
+
+<view class="page" wx:else>
+  <view class="empty card">
+    <view class="empty-title">衣物不存在</view>
+    <button class="primary-button" bindtap="goHome">回到衣橱</button>
+  </view>
+</view>

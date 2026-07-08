@@ -1,0 +1,156 @@
+.detail-image {
+  width: 100%;
+  aspect-ratio: 1 / 1.18;
+  overflow: hidden;
+  border-color: transparent;
+  border-radius: 12rpx;
+}
+
+.image,
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #efe3dc;
+  color: #9a8b83;
+  font-size: 34rpx;
+}
+
+.detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+  margin-top: 30rpx;
+}
+
+.eyebrow {
+  margin-bottom: 10rpx;
+  color: #8b3f37;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+.name {
+  font-size: 46rpx;
+  font-weight: 700;
+  line-height: 1.12;
+}
+
+.price {
+  flex: 0 0 auto;
+  color: #8b3f37;
+  font-size: 38rpx;
+  font-weight: 700;
+}
+
+.info {
+  padding: 8rpx 24rpx;
+  background: rgba(255, 252, 248, 0.82);
+}
+
+.row,
+.note-row {
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #e8ded6;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.row:last-child,
+.note-row:last-child {
+  border-bottom: 0;
+}
+
+.key {
+  color: #9a8b83;
+  font-size: 26rpx;
+}
+
+.value {
+  color: #2d2522;
+  font-size: 28rpx;
+}
+
+.note {
+  display: block;
+  margin-top: 12rpx;
+  color: #2d2522;
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.wear-card {
+  padding: 24rpx;
+  background: rgba(255, 252, 248, 0.82);
+}
+
+.wear-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14rpx;
+}
+
+.wear-value {
+  display: block;
+  min-height: 42rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.wear-label {
+  display: block;
+  margin-top: 8rpx;
+  color: #9a8b83;
+  font-size: 22rpx;
+}
+
+.worn-button {
+  margin-top: 24rpx;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18rpx;
+  margin-top: 34rpx;
+}
+
+.actions .ghost-button,
+.delete-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.delete-button {
+  height: 80rpx;
+  border: 1rpx solid #8b3f37;
+  border-radius: 10rpx;
+  background: transparent;
+  color: #8b3f37;
+  font-size: 26rpx;
+}
+
+.empty {
+  margin-top: 120rpx;
+  padding: 48rpx 28rpx;
+  text-align: center;
+}
+
+.empty-title {
+  margin-bottom: 28rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+}

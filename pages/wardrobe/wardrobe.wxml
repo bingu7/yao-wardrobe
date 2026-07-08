@@ -1,0 +1,72 @@
+<view class="page">
+  <view class="hero">
+    <view>
+      <view class="eyebrow">TODAY'S CLOSET</view>
+      <view class="title">我的衣橱</view>
+      <view class="subtitle">把喜欢的裙子和衣服都收好</view>
+    </view>
+    <button class="add-btn" bindtap="goAdd">+ 添加</button>
+  </view>
+
+  <view class="overview">
+    <view class="overview-item card">
+      <text class="overview-value">{{summary.totalCount}}</text>
+      <text class="overview-label">总件数</text>
+    </view>
+    <view class="overview-item card">
+      <text class="overview-value">¥{{summary.totalPrice}}</text>
+      <text class="overview-label">总花费</text>
+    </view>
+    <view class="overview-item card">
+      <text class="overview-value">{{summary.idleCount}}</text>
+      <text class="overview-label">闲置</text>
+    </view>
+  </view>
+
+  <view class="search-row">
+    <input class="search-input" placeholder="搜索衣物名字" value="{{keyword}}" bindinput="onSearch" />
+  </view>
+
+  <view class="category-filter">
+    <view class="category-row">
+      <button
+        wx:for="{{visibleCategories}}"
+        wx:key="*this"
+        class="category-pill {{activeCategory === item ? 'active' : ''}}"
+        data-category="{{item}}"
+        bindtap="setCategory"
+      >
+        {{item}}
+      </button>
+    </view>
+    <button wx:if="{{canToggleCategories}}" class="category-toggle" bindtap="toggleCategories">{{categoryToggleText}}</button>
+  </view>
+
+  <view wx:if="{{filteredItems.length}}" class="grid section">
+    <view
+      wx:for="{{filteredItems}}"
+      wx:key="id"
+      class="item-card card"
+      data-id="{{item.id}}"
+      bindtap="goDetail"
+    >
+      <view class="image-wrap">
+        <image wx:if="{{item.imageUrl}}" class="item-image" src="{{item.imageUrl}}" mode="aspectFill" />
+        <view wx:else class="image-placeholder">{{item.category}}</view>
+      </view>
+      <view class="item-body">
+        <view class="item-name">{{item.name}}</view>
+        <view class="item-meta">
+          <text>{{item.category}}</text>
+          <text wx:if="{{item.price}}">¥{{item.price}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="empty card">
+    <view class="empty-title">还没有找到衣物</view>
+    <view class="empty-text">换个分类或添加第一件衣服。</view>
+    <button class="primary-button empty-button" bindtap="goAdd">添加衣物</button>
+  </view>
+</view>

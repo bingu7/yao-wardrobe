@@ -1,0 +1,86 @@
+.eyebrow {
+  padding-top: 20rpx;
+  color: #8b3f37;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+.title {
+  margin-top: 12rpx;
+  font-size: 50rpx;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.subtitle {
+  margin-top: 8rpx;
+  color: #9a8b83;
+  font-size: 26rpx;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18rpx;
+}
+
+.summary-card {
+  padding: 30rpx 22rpx;
+  background: rgba(255, 252, 248, 0.82);
+}
+
+.summary-card.wide {
+  grid-column: span 2;
+}
+
+.value {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 700;
+}
+
+.label {
+  display: block;
+  margin-top: 8rpx;
+  color: #9a8b83;
+  font-size: 24rpx;
+}
+
+.category-card {
+  padding: 26rpx 24rpx;
+  background: rgba(255, 252, 248, 0.82);
+}
+
+.block-title {
+  margin-bottom: 16rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.category-row {
+  display: grid;
+  grid-template-columns: 96rpx 1fr 48rpx;
+  align-items: center;
+  gap: 16rpx;
+  padding: 16rpx 0;
+  color: #5f514a;
+  font-size: 26rpx;
+}
+
+.bar-wrap {
+  height: 16rpx;
+  border-radius: 8rpx;
+  background: #e8ded6;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  min-width: 8rpx;
+  border-radius: 8rpx;
+  background: #8b3f37;
+}
+
+.count {
+  text-align: right;
+}

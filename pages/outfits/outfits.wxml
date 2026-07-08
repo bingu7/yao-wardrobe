@@ -1,0 +1,57 @@
+<view class="page">
+  <view class="hero">
+    <view>
+      <view class="eyebrow">LOOKBOOK</view>
+      <view class="title">穿搭组合</view>
+      <view class="subtitle">直接查看已保存穿搭，也可以按场合快速筛选</view>
+    </view>
+    <button class="add-btn" bindtap="goAdd">+ 添加</button>
+  </view>
+
+  <view class="search-row">
+    <input class="search-input" placeholder="搜索穿搭名、备注或衣物" value="{{keyword}}" bindinput="onSearch" />
+  </view>
+
+  <view class="filter-wrap">
+    <view class="filter-row">
+      <button
+        wx:for="{{visibleOccasionFilters}}"
+        wx:key="*this"
+        class="filter-pill {{activeOccasion === item ? 'active' : ''}}"
+        data-occasion="{{item}}"
+        bindtap="setOccasion"
+      >
+        {{item}}
+      </button>
+    </view>
+    <button wx:if="{{canToggleOccasions}}" class="filter-toggle" bindtap="toggleOccasions">{{occasionToggleText}}</button>
+  </view>
+
+  <view wx:if="{{filteredOutfits.length}}" class="section">
+    <view wx:for="{{filteredOutfits}}" wx:key="id" class="outfit-card card">
+      <view class="outfit-head">
+        <view>
+          <view class="outfit-name">{{item.name}}</view>
+          <view class="muted">{{item.occasion || '未设置场合'}}</view>
+        </view>
+        <button class="delete-mini" data-id="{{item.id}}" bindtap="deleteOutfit">删除</button>
+      </view>
+      <view class="piece-grid">
+        <view wx:for="{{item.pieces}}" wx:key="key" class="piece">
+          <view class="piece-image">
+            <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
+            <view wx:else class="piece-placeholder">{{item.label}}</view>
+          </view>
+          <view class="piece-name">{{item.name}}</view>
+        </view>
+      </view>
+      <view wx:if="{{item.note}}" class="outfit-note">{{item.note}}</view>
+    </view>
+  </view>
+
+  <view wx:else class="empty card section">
+    <view class="empty-title">没有找到穿搭</view>
+    <view class="empty-text">换个关键词或场合，或者新建一套穿搭。</view>
+    <button class="primary-button empty-button" bindtap="goAdd">添加穿搭</button>
+  </view>
+</view>

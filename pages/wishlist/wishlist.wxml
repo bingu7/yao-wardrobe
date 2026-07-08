@@ -1,0 +1,56 @@
+<view class="page">
+  <view class="hero">
+    <view>
+      <view class="eyebrow">WISHLIST NOTES</view>
+      <view class="title">愿望清单</view>
+      <view class="subtitle">先记录想买的衣服，再看它能不能搭上已有衣物</view>
+    </view>
+    <button class="add-btn" bindtap="goAdd">+ 添加</button>
+  </view>
+
+  <view class="search-row">
+    <input class="search-input" placeholder="搜索愿望、备注或搭配衣物" value="{{keyword}}" bindinput="onSearch" />
+  </view>
+
+  <view class="filter-wrap">
+    <view class="filter-row">
+      <button
+        wx:for="{{visibleCategories}}"
+        wx:key="*this"
+        class="filter-pill {{activeCategory === item ? 'active' : ''}}"
+        data-category="{{item}}"
+        bindtap="setCategory"
+      >
+        {{item}}
+      </button>
+    </view>
+    <button wx:if="{{canToggleCategories}}" class="filter-toggle" bindtap="toggleCategories">{{categoryToggleText}}</button>
+  </view>
+
+  <view wx:if="{{filteredWishlist.length}}" class="section">
+    <view wx:for="{{filteredWishlist}}" wx:key="id" class="wish-card card">
+      <view class="wish-image">
+        <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
+        <view wx:else class="wish-placeholder">{{item.category}}</view>
+      </view>
+      <view class="wish-info">
+        <view class="wish-head">
+          <view>
+            <view class="wish-name">{{item.name}}</view>
+            <view class="muted">{{item.category}}</view>
+          </view>
+          <view wx:if="{{item.expectedPrice}}" class="wish-price">¥{{item.expectedPrice}}</view>
+        </view>
+        <view wx:if="{{item.matchItem}}" class="match-text">可搭：{{item.matchItem.name}}</view>
+        <view wx:if="{{item.note}}" class="wish-note">{{item.note}}</view>
+        <button class="delete-mini" data-id="{{item.id}}" bindtap="deleteWish">删除</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="empty card section">
+    <view class="empty-title">没有找到愿望</view>
+    <view class="empty-text">换个关键词或分类，或者添加一个想买的衣物。</view>
+    <button class="primary-button empty-button" bindtap="goAdd">添加愿望</button>
+  </view>
+</view>

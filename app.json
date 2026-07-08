@@ -1,0 +1,58 @@
+{
+  "pages": [
+    "pages/wardrobe/wardrobe",
+    "pages/add/add",
+    "pages/outfits/outfits",
+    "pages/outfit-form/outfit-form",
+    "pages/wishlist/wishlist",
+    "pages/wish-form/wish-form",
+    "pages/detail/detail",
+    "pages/stats/stats"
+  ],
+  "window": {
+    "navigationBarTitleText": "我的衣橱",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f8f5f1"
+  },
+  "tabBar": {
+    "color": "#9a8b83",
+    "selectedColor": "#8b3f37",
+    "backgroundColor": "#fffdfa",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/wardrobe/wardrobe",
+        "text": "衣橱",
+        "iconPath": "assets/tabbar/wardrobe.png",
+        "selectedIconPath": "assets/tabbar/wardrobe-active.png"
+      },
+      {
+        "pagePath": "pages/add/add",
+        "text": "添加",
+        "iconPath": "assets/tabbar/add.png",
+        "selectedIconPath": "assets/tabbar/add-active.png"
+      },
+      {
+        "pagePath": "pages/outfits/outfits",
+        "text": "穿搭",
+        "iconPath": "assets/tabbar/outfits.png",
+        "selectedIconPath": "assets/tabbar/outfits-active.png"
+      },
+      {
+        "pagePath": "pages/wishlist/wishlist",
+        "text": "愿望",
+        "iconPath": "assets/tabbar/wishlist.png",
+        "selectedIconPath": "assets/tabbar/wishlist-active.png"
+      },
+      {
+        "pagePath": "pages/stats/stats",
+        "text": "统计",
+        "iconPath": "assets/tabbar/stats.png",
+        "selectedIconPath": "assets/tabbar/stats-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
