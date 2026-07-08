@@ -196,14 +196,23 @@ Page({
 
   chooseImage() {
     this.isPickingImage = true
+    const oldImageUrl = this.data.form.imageUrl
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
       success: (res) => {
-        this.setData({
-          'form.imageUrl': res.tempFiles[0].tempFilePath,
-          'errors.imageUrl': ''
+        const tempPath = res.tempFiles[0].tempFilePath
+        // 保存到持久化存储，这样关闭小程序后图片不会丢失
+        wardrobe.persistImage(tempPath).then((savedPath) => {
+          // 替换图片时清理旧的持久化文件
+          if (oldImageUrl && oldImageUrl !== savedPath) {
+            wardrobe.removeImageFile(oldImageUrl)
+          }
+          this.setData({
+            'form.imageUrl': savedPath,
+            'errors.imageUrl': ''
+          })
         })
       },
       fail: () => {
@@ -213,6 +222,8 @@ Page({
   },
 
   removeImage() {
+    const oldUrl = this.data.form.imageUrl
+    wardrobe.removeImageFile(oldUrl)
     this.setData({
       'form.imageUrl': '',
       'errors.imageUrl': '请上传衣物图片'

@@ -229,6 +229,30 @@ function saveItems(items) {
   wx.setStorageSync(STORAGE_KEY, items)
 }
 
+/** 将临时图片文件保存到持久化存储，返回持久化路径 */
+function persistImage(tempFilePath) {
+  return new Promise((resolve) => {
+    wx.saveFile({
+      tempFilePath,
+      success: (res) => resolve(res.savedFilePath),
+      fail: () => resolve(tempFilePath) // 保底：返回临时路径
+    })
+  })
+}
+
+/** 删除持久化的图片文件，避免堆积占用存储空间 */
+function removeImageFile(filePath) {
+  if (!filePath) return
+  wx.getSavedFileList({
+    success: (res) => {
+      const match = res.fileList.find((f) => f.filePath === filePath)
+      if (match) {
+        wx.removeSavedFile({ filePath })
+      }
+    }
+  })
+}
+
 function getItem(id) {
   const item = getItems().find((current) => current.id === id)
   return item ? normalizeItem(item) : undefined
@@ -266,7 +290,12 @@ function upsertItem(item) {
 }
 
 function deleteItem(id) {
-  saveItems(getItems().filter((item) => item.id !== id))
+  const items = getItems()
+  const item = items.find((i) => i.id === id)
+  if (item && item.imageUrl) {
+    removeImageFile(item.imageUrl)
+  }
+  saveItems(items.filter((i) => i.id !== id))
 }
 
 function markWorn(id) {
@@ -373,7 +402,12 @@ function addWishlistItem(item) {
 }
 
 function deleteWishlistItem(id) {
-  saveWishlist(getWishlist().filter((item) => item.id !== id))
+  const list = getWishlist()
+  const item = list.find((i) => i.id === id)
+  if (item && item.imageUrl) {
+    removeImageFile(item.imageUrl)
+  }
+  saveWishlist(list.filter((i) => i.id !== id))
 }
 
 function summarize(items) {
@@ -407,6 +441,8 @@ module.exports = {
   seasons,
   statuses,
   defaultOccasions,
+  persistImage,
+  removeImageFile,
   getCustomOccasions,
   getOccasions,
   addCustomOccasion,

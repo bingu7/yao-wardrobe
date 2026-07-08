@@ -75,19 +75,28 @@ Page({
   noop() {},
 
   chooseImage() {
+    const oldImageUrl = this.data.form.imageUrl
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
       success: (res) => {
-        this.setData({
-          'form.imageUrl': res.tempFiles[0].tempFilePath
+        const tempPath = res.tempFiles[0].tempFilePath
+        wardrobe.persistImage(tempPath).then((savedPath) => {
+          if (oldImageUrl && oldImageUrl !== savedPath) {
+            wardrobe.removeImageFile(oldImageUrl)
+          }
+          this.setData({
+            'form.imageUrl': savedPath
+          })
         })
       }
     })
   },
 
   removeImage() {
+    const oldUrl = this.data.form.imageUrl
+    wardrobe.removeImageFile(oldUrl)
     this.setData({
       'form.imageUrl': ''
     })
