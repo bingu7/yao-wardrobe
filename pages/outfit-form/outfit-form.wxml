@@ -3,21 +3,14 @@
     <button class="back-button" bindtap="goBack">返回</button>
     <view>
       <view class="title">添加穿搭</view>
-      <view class="subtitle">选择至少两件衣物保存成一套</view>
+      <view class="subtitle">选好衣物自由搭配</view>
     </view>
   </view>
 
-  <view class="builder card section">
+  <view class="card section builder">
     <view class="field">
       <text class="label">穿搭名字</text>
-      <input class="input" placeholder="例如：周末拍照穿搭" value="{{form.name}}" data-field="name" bindinput="onInput" maxlength="24" />
-    </view>
-
-    <view wx:for="{{slots}}" wx:key="key" class="field">
-      <text class="label">{{item.label}}</text>
-      <picker mode="selector" range="{{item.options}}" range-key="name" value="{{item.index}}" data-index="{{index}}" bindchange="onSlotChange">
-        <view class="picker-value">{{item.displayName}}</view>
-      </picker>
+      <input class="input" placeholder="例如：周末约会穿搭" value="{{form.name}}" data-field="name" bindinput="onInput" maxlength="20" />
     </view>
 
     <view class="field">
@@ -26,12 +19,91 @@
         <view class="picker-value">{{occasionLabel}}</view>
       </picker>
     </view>
+  </view>
 
-    <view class="field">
-      <text class="label">备注</text>
-      <textarea class="textarea" placeholder="比如：适合拍照、旅行、约会" value="{{form.note}}" data-field="note" bindinput="onInput" />
+  <view class="card section builder">
+    <view class="block-title">
+      搭配衣物
+      <text class="piece-hint">已选 {{pieces.length}} 件</text>
     </view>
+
+    <view wx:for="{{pieces}}" wx:key="index" class="piece-form" data-index="{{index}}">
+      <view class="piece-header">
+        <text class="piece-num">第{{index + 1}}件</text>
+        <button wx:if="{{pieces.length > 1}}" class="remove-piece" data-index="{{index}}" bindtap="removePiece">移除</button>
+      </view>
+
+      <view class="field">
+        <text class="label">选择分类</text>
+        <view class="picker-value category-trigger" data-index="{{index}}" bindtap="openCategoryPanel">
+          <text>{{item.categoryName || '选择分类'}}</text>
+          <text class="trigger-arrow">›</text>
+        </view>
+      </view>
+
+      <view class="field">
+        <text class="label">选择衣物</text>
+        <picker mode="selector" range="{{item.itemOptions}}" range-key="name" value="{{item.itemIndex}}" bindchange="onPieceItemChange" data-index="{{index}}">
+          <view class="picker-value">{{item.displayName}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <button wx:if="{{pieces.length < 5}}" class="ghost-button add-piece-btn" bindtap="addPiece">+ 再添加一件</button>
+  </view>
+
+  <view class="field" style="margin-top: 22rpx;">
+    <text class="label">备注</text>
+    <textarea class="textarea" placeholder="穿搭的风格、适合的场景" value="{{form.note}}" data-field="note" bindinput="onInput" />
   </view>
 
   <button class="primary-button save-button" bindtap="saveOutfit">保存穿搭</button>
+
+  <!-- 分类面板 -->
+  <view wx:if="{{showCategoryPanel}}" class="panel-mask" catchtap="closeCategoryPanel">
+    <view class="category-panel" catchtap="noop">
+      <view class="panel-head">
+        <view class="panel-actions">
+          <button class="panel-action" bindtap="toggleCategoryEditing">{{isCategoryEditing ? '完成' : '编辑'}}</button>
+          <button class="panel-close" bindtap="closeCategoryPanel">关闭</button>
+        </view>
+      </view>
+
+      <view wx:if="{{!isCategoryEditing}}" class="category-grid">
+        <view
+          wx:for="{{categoryPanelItems}}"
+          wx:key="name"
+          class="category-chip {{item.selected ? 'selected' : ''}}"
+          data-category="{{item.name}}"
+          bindtap="selectCategoryFromPanel"
+          bindlongpress="toggleCategoryEditing"
+        >
+          {{item.name}}
+        </view>
+      </view>
+
+      <view wx:else class="category-edit-list">
+        <view wx:for="{{categoryPanelItems}}" wx:key="name" class="category-edit-card">
+          <button class="delete-x" data-category="{{item.name}}" catchtap="deleteCustomCategory">×</button>
+          <input
+            class="category-edit-input"
+            value="{{item.draftName}}"
+            data-index="{{index}}"
+            bindinput="onCategoryDraftInput"
+            maxlength="10"
+          />
+          <view class="category-card-actions">
+            <button class="mini-button save-mini" data-index="{{index}}" bindtap="renameCategoryFromPanel">保存</button>
+            <button class="mini-button" disabled="{{!item.canMoveUp}}" data-category="{{item.name}}" data-direction="-1" bindtap="moveCategoryFromPanel">上移</button>
+            <button class="mini-button" disabled="{{!item.canMoveDown}}" data-category="{{item.name}}" data-direction="1" bindtap="moveCategoryFromPanel">下移</button>
+          </view>
+        </view>
+      </view>
+
+      <view class="panel-add">
+        <input class="custom-input" placeholder="没有合适的？输入新种类" value="{{customCategory}}" bindinput="onCustomCategoryInput" maxlength="10" />
+        <button class="custom-button" bindtap="addCustomCategory">添加</button>
+      </view>
+    </view>
+  </view>
 </view>

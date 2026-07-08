@@ -37,10 +37,10 @@
         <button class="delete-mini" data-id="{{item.id}}" bindtap="deleteOutfit">删除</button>
       </view>
       <view class="piece-grid">
-        <view wx:for="{{item.pieces}}" wx:key="key" class="piece">
+        <view wx:for="{{item.pieces}}" wx:key="itemId" class="piece">
           <view class="piece-image">
             <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
-            <view wx:else class="piece-placeholder">{{item.label}}</view>
+            <view wx:else class="piece-placeholder">{{item.category}}</view>
           </view>
           <view class="piece-name">{{item.name}}</view>
         </view>

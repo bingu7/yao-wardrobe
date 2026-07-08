@@ -152,10 +152,14 @@
 }
 
 .piece-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 12rpx;
   margin-top: 24rpx;
+}
+
+.piece {
+  flex: 0 0 110rpx;
 }
 
 .piece-image {

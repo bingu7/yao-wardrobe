@@ -35,6 +35,26 @@ Page({
     this.loadOptions()
   },
 
+  onShow() {
+    this.refreshOptions()
+  },
+
+  refreshOptions() {
+    const items = wardrobe.getItems()
+    const customCategories = wardrobe.getCustomCategories()
+    const customView = this.buildCustomView(customCategories, this.data.showAllCustomCategories)
+    // 刷新分类面板和匹配列表，但不重置表单已填写的内容
+    this.setData({
+      categories: wardrobe.getFormCategories(),
+      customCategories,
+      visibleCustomCategories: customView.visibleItems,
+      hiddenCustomCategoryCount: customView.hiddenCount,
+      customCategoryToggleText: customView.toggleText,
+      categoryPanelItems: this.buildCategoryPanelItems(wardrobe.getFormCategories(), customCategories, this.data.form.category),
+      matchOptions: [{ id: '', name: '不选择已有衣物' }, ...items]
+    })
+  },
+
   loadOptions() {
     const items = wardrobe.getItems()
     const customCategories = wardrobe.getCustomCategories()

@@ -21,7 +21,7 @@ Page({
   loadData() {
     const items = wardrobe.getItems()
     const outfits = wardrobe.getOutfits().map((outfit) => wardrobe.hydrateOutfit(outfit, items))
-    const outfitOccasions = outfits.map((outfit) => outfit.occasion).filter(Boolean)
+    const outfitOccasions = outfits.map((outfit) => outfit.occasion || '未设置').filter(Boolean)
     const occasionFilters = ['全部', ...Array.from(new Set(outfitOccasions))]
     const activeOccasion = occasionFilters.includes(this.data.activeOccasion) ? this.data.activeOccasion : '全部'
     const occasionView = this.buildOccasionView(occasionFilters, this.data.showAllOccasions)
@@ -51,7 +51,7 @@ Page({
     const filteredOutfits = this.data.outfits.filter((outfit) => {
       const pieceNames = outfit.pieces.map((piece) => piece.name).join(' ')
       const matchKeyword = !keyword || `${outfit.name} ${outfit.note || ''} ${pieceNames}`.toLowerCase().includes(keyword)
-      const matchOccasion = this.data.activeOccasion === '全部' || outfit.occasion === this.data.activeOccasion
+      const matchOccasion = this.data.activeOccasion === '全部' || (outfit.occasion || '未设置') === this.data.activeOccasion
       return matchKeyword && matchOccasion
     })
 

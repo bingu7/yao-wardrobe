@@ -45,31 +45,39 @@ const starterItems = [
     color: '白色',
     seasons: ['春', '秋'],
     occasions: ['通勤', '正式'],
-    purchaseDate: '2026-05-02',
-    status: '偶尔穿',
-    wearCount: 0,
-    lastWornDate: '',
-    note: '通勤和拍证件照都能用',
-    createdAt: '2026-07-08T12:00:00+08:00',
-    updatedAt: '2026-07-08T12:00:00+08:00'
-  }
-]
+        purchaseDate: '2026-05-02',
+        status: '偶尔穿',
+        wearCount: 0,
+        lastWornDate: '',
+        note: '通勤和拍证件照都能用',
+        createdAt: '2026-07-08T12:00:00+08:00',
+        updatedAt: '2026-07-08T12:00:00+08:00'
+      }
+    ]
 
-const starterOutfits = [
-  {
-    id: 'outfit_sample_001',
-    name: '周末拍照穿搭',
-    topId: 'sample_002',
-    bottomId: 'sample_001',
-    shoesId: '',
-    bagId: '',
-    accessoryId: '',
-    occasion: '拍照',
-    note: '清爽一点，适合出门拍照',
-    createdAt: '2026-07-08T12:00:00+08:00',
-    updatedAt: '2026-07-08T12:00:00+08:00'
-  }
-]
+    // 旧数据迁移用，新穿搭不再使用固定槽位
+    const legacySlotMap = [
+      { key: 'topId', category: '上衣' },
+      { key: 'bottomId', category: '下装' },
+      { key: 'shoesId', category: '鞋子' },
+      { key: 'bagId', category: '包包' },
+      { key: 'accessoryId', category: '配饰' }
+    ]
+
+    const starterOutfits = [
+      {
+        id: 'outfit_sample_001',
+        name: '周末拍照穿搭',
+        pieces: [
+          { category: '上衣', itemId: 'sample_002' },
+          { category: '连衣裙', itemId: 'sample_001' }
+        ],
+        occasion: '拍照',
+        note: '清爽一点，适合出门拍照',
+        createdAt: '2026-07-08T12:00:00+08:00',
+        updatedAt: '2026-07-08T12:00:00+08:00'
+      }
+    ]
 
 function getItems() {
   const saved = wx.getStorageSync(STORAGE_KEY)
@@ -326,6 +334,23 @@ function getCostPerWear(item) {
 function getOutfits() {
   const saved = wx.getStorageSync(OUTFIT_STORAGE_KEY)
   if (Array.isArray(saved)) {
+    // 自动迁移旧数据：把 topId/bottomId 等格式转为 pieces 数组
+    const needsMigration = saved.some((o) => !Array.isArray(o.pieces))
+    if (needsMigration) {
+      const migrated = saved.map((o) => {
+        if (Array.isArray(o.pieces)) return o
+        const pieces = []
+        for (const slot of legacySlotMap) {
+          if (o[slot.key]) {
+            pieces.push({ category: slot.category, itemId: o[slot.key] })
+          }
+        }
+        const { topId, bottomId, shoesId, bagId, accessoryId, ...rest } = o
+        return { ...rest, pieces }
+      })
+      saveOutfits(migrated)
+      return migrated
+    }
     return saved
   }
   wx.setStorageSync(OUTFIT_STORAGE_KEY, starterOutfits)
@@ -370,12 +395,15 @@ function hydrateOutfit(outfit, items) {
   }, {})
   return {
     ...outfit,
-    pieces: outfitSlots.map((slot) => ({
-      ...slot,
-      item: itemMap[outfit[slot.key]] || null,
-      imageUrl: itemMap[outfit[slot.key]] ? itemMap[outfit[slot.key]].imageUrl : '',
-      name: itemMap[outfit[slot.key]] ? itemMap[outfit[slot.key]].name : '未选择'
-    }))
+    pieces: (outfit.pieces || []).map((piece) => {
+      const item = itemMap[piece.itemId] || null
+      return {
+        ...piece,
+        item,
+        imageUrl: item ? item.imageUrl : '',
+        name: item ? item.name : '未选择'
+      }
+    })
   }
 }
 
@@ -447,7 +475,6 @@ module.exports = {
   getOccasions,
   addCustomOccasion,
   deleteCustomOccasion,
-  outfitSlots,
   getCategories,
   getCustomCategories,
   getFormCategories,
