@@ -57,7 +57,7 @@
       <text class="label">场合标签</text>
       <view class="chip-row wrap">
         <button
-          wx:for="{{occasionOptions}}"
+          wx:for="{{visibleOccasionOptions}}"
           wx:key="name"
           class="chip occasion-chip {{item.selected ? 'active' : ''}}"
           data-occasion="{{item.name}}"
@@ -66,31 +66,28 @@
           {{item.name}}
         </button>
       </view>
+      <button wx:if="{{hiddenOccasionOptionCount}}" class="occasion-toggle" bindtap="toggleOccasionOptions">{{occasionOptionToggleText}}</button>
       <view class="custom-category compact">
         <input class="custom-input" placeholder="添加自定义场合" value="{{customOccasion}}" bindinput="onCustomOccasionInput" maxlength="10" />
         <button class="custom-button" bindtap="addCustomOccasion">添加场合</button>
       </view>
-      <view wx:if="{{customOccasions.length}}" class="custom-list compact-list">
-        <view wx:for="{{visibleCustomOccasions}}" wx:key="*this" class="custom-row">
-          <text class="custom-name">{{item}}</text>
-          <button class="custom-delete" data-occasion="{{item}}" bindtap="deleteCustomOccasion">删除</button>
-        </view>
-        <button wx:if="{{hiddenCustomOccasionCount}}" class="custom-toggle" bindtap="toggleCustomOccasions">{{customOccasionToggleText}}</button>
-      </view>
+      <button class="manage-occasion-button" bindtap="openOccasionPanel">管理场合</button>
     </view>
 
     <view class="field">
       <text class="label">购买时间</text>
-      <picker mode="date" value="{{form.purchaseDate}}" bindchange="onDateChange">
-        <view class="picker-value">{{form.purchaseDate || '选择日期'}}</view>
-      </picker>
+      <view class="picker-value category-trigger" bindtap="openDatePanel">
+        <text>{{form.purchaseDate || '选择日期'}}</text>
+        <text class="trigger-arrow">›</text>
+      </view>
     </view>
 
     <view class="field">
       <text class="label">状态</text>
-      <picker mode="selector" range="{{statuses}}" value="{{statusIndex}}" bindchange="onStatusChange">
-        <view class="picker-value">{{form.status || '选择状态'}}</view>
-      </picker>
+      <view class="picker-value category-trigger" bindtap="openStatusPanel">
+        <text>{{form.status || '选择状态'}}</text>
+        <text class="trigger-arrow">›</text>
+      </view>
     </view>
 
     <view class="field">
@@ -147,6 +144,91 @@
       <view class="panel-add">
         <input class="custom-input" placeholder="没有合适的？输入新种类" value="{{customCategory}}" bindinput="onCustomCategoryInput" maxlength="10" />
         <button class="custom-button" bindtap="addCustomCategory">添加</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 场合管理面板 -->
+  <view wx:if="{{showOccasionPanel}}" class="panel-mask" catchtap="closeOccasionPanel">
+    <view class="category-panel" catchtap="noop">
+      <view class="panel-head">
+        <view class="panel-actions" style="grid-template-columns: 1fr;">
+          <button class="panel-close" bindtap="closeOccasionPanel">完成</button>
+        </view>
+      </view>
+
+      <view class="category-edit-list">
+        <view wx:for="{{occasionPanelItems}}" wx:key="name" class="category-edit-card">
+          <button class="delete-x" data-occasion="{{item.name}}" catchtap="deleteCustomOccasion">×</button>
+          <input
+            class="category-edit-input"
+            value="{{item.draftName}}"
+            data-index="{{index}}"
+            bindinput="onOccasionDraftInput"
+            maxlength="10"
+          />
+          <view class="category-card-actions">
+            <button class="mini-button save-mini" data-index="{{index}}" bindtap="renameOccasionFromPanel">保存</button>
+            <button class="mini-button" disabled="{{!item.canMoveUp}}" data-occasion="{{item.name}}" data-direction="-1" bindtap="moveOccasionFromPanel">上移</button>
+            <button class="mini-button" disabled="{{!item.canMoveDown}}" data-occasion="{{item.name}}" data-direction="1" bindtap="moveOccasionFromPanel">下移</button>
+          </view>
+        </view>
+      </view>
+
+      <view class="panel-add">
+        <input class="custom-input" placeholder="输入新场合" value="{{customOccasion}}" bindinput="onCustomOccasionInput" maxlength="10" />
+        <button class="custom-button" bindtap="addCustomOccasion">添加</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 状态面板（简单选择，无编辑） -->
+  <view wx:if="{{showStatusPanel}}" class="panel-mask" catchtap="closeStatusPanel">
+    <view class="category-panel" catchtap="noop">
+      <view class="panel-head">
+        <view class="panel-actions">
+          <button class="panel-close" bindtap="closeStatusPanel">关闭</button>
+        </view>
+      </view>
+      <view class="category-grid">
+        <view
+          wx:for="{{statuses}}"
+          wx:key="*this"
+          class="category-chip {{item === form.status ? 'selected' : ''}}"
+          data-status="{{item}}"
+          bindtap="selectStatus"
+        >
+          {{item}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 日期面板 -->
+  <view wx:if="{{showDatePanel}}" class="panel-mask" catchtap="closeDatePanel">
+    <view class="category-panel" catchtap="noop">
+      <view class="panel-head">
+        <view class="panel-actions" style="grid-template-columns: 1fr;">
+          <button class="panel-close" bindtap="closeDatePanel">关闭</button>
+        </view>
+      </view>
+      <view class="date-panel">
+        <view class="quick-date-row">
+          <button class="quick-date-btn" data-offset="0" bindtap="selectQuickDate">今天</button>
+          <button class="quick-date-btn" data-offset="-1" bindtap="selectQuickDate">昨天</button>
+          <button class="quick-date-btn" data-offset="-7" bindtap="selectQuickDate">一周前</button>
+          <button class="quick-date-btn" data-offset="-30" bindtap="selectQuickDate">一月前</button>
+        </view>
+        <picker mode="date" value="{{form.purchaseDate}}" bindchange="onDateChange">
+          <view class="date-picker-row">
+            <view>
+              <view class="date-picker-title">选择具体日期</view>
+              <view class="date-picker-value">{{form.purchaseDate || '未选择'}}</view>
+            </view>
+            <text class="trigger-arrow">›</text>
+          </view>
+        </picker>
+        <button class="date-clear" data-offset="-999" bindtap="selectQuickDate">清空日期</button>
       </view>
     </view>
   </view>

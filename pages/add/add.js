@@ -1,5 +1,6 @@
 const wardrobe = require('../../utils/wardrobe')
 const CUSTOM_VISIBLE_LIMIT = 2
+const OCCASION_VISIBLE_LIMIT = 4
 
 function emptyForm() {
   return {
@@ -49,15 +50,19 @@ Page({
     customCategory: '',
     seasonOptions: wardrobe.seasons.map((name) => ({ name, selected: false })),
     occasionOptions: [],
+    visibleOccasionOptions: [],
+    showAllOccasionOptions: false,
+    hiddenOccasionOptionCount: 0,
+    occasionOptionToggleText: '',
+    occasionPanelItems: [],
+    showOccasionPanel: false,
     customOccasions: [],
-    visibleCustomOccasions: [],
-    showAllCustomOccasions: false,
-    hiddenCustomOccasionCount: 0,
-    customOccasionToggleText: '',
     customOccasion: '',
     statuses: wardrobe.statuses,
     categoryIndex: 0,
     statusIndex: 0,
+    showStatusPanel: false,
+    showDatePanel: false,
     form: emptyForm(),
     errors: emptyErrors()
   },
@@ -81,9 +86,7 @@ Page({
     }
 
     if (this.hasVisited) {
-      this.setData({
-        occasionOptions: this.buildOccasionOptions(this.data.form.occasions || [])
-      })
+      this.refreshOccasions(this.data.form.occasions || [])
       return
     }
 
@@ -97,6 +100,7 @@ Page({
       seasonOptions: this.buildSeasonOptions([]),
       occasionOptions: this.buildOccasionOptions([])
     })
+    this.refreshOccasions([])
   },
 
   refreshCategories(selectedCategory) {
@@ -115,14 +119,17 @@ Page({
   },
 
   refreshOccasions(selectedOccasions) {
-    const customOccasions = wardrobe.getCustomOccasions()
-    const customView = this.buildCustomView(customOccasions, this.data.showAllCustomOccasions)
+    const occasions = wardrobe.getOccasions()
+    const selected = selectedOccasions || this.data.form.occasions || []
+    const occasionOptions = this.buildOccasionOptions(selected)
+    const occasionView = this.buildOccasionView(occasionOptions, this.data.showAllOccasionOptions)
     this.setData({
-      customOccasions,
-      visibleCustomOccasions: customView.visibleItems,
-      hiddenCustomOccasionCount: customView.hiddenCount,
-      customOccasionToggleText: customView.toggleText,
-      occasionOptions: this.buildOccasionOptions(selectedOccasions || this.data.form.occasions || [])
+      customOccasions: occasions,
+      occasionOptions,
+      visibleOccasionOptions: occasionView.visibleItems,
+      hiddenOccasionOptionCount: occasionView.hiddenCount,
+      occasionOptionToggleText: occasionView.toggleText,
+      occasionPanelItems: this.buildOccasionPanelItems(occasions, selected)
     })
   },
 
@@ -147,7 +154,7 @@ Page({
       errors: emptyErrors(),
       seasonOptions: this.buildSeasonOptions(item.seasons || []),
       occasionOptions: this.buildOccasionOptions(item.occasions || []),
-      customOccasions: wardrobe.getCustomOccasions(),
+      customOccasions: wardrobe.getOccasions(),
       categoryIndex: Math.max(0, categories.indexOf(item.category)),
       statusIndex: Math.max(0, wardrobe.statuses.indexOf(item.status))
     })
@@ -160,6 +167,15 @@ Page({
     const visibleItems = showAll ? items : items.slice(0, CUSTOM_VISIBLE_LIMIT)
     return {
       visibleItems,
+      hiddenCount,
+      toggleText: showAll ? '收起' : `展开 ${hiddenCount} 个`
+    }
+  },
+
+  buildOccasionView(items, showAll) {
+    const hiddenCount = Math.max(items.length - OCCASION_VISIBLE_LIMIT, 0)
+    return {
+      visibleItems: showAll ? items : items.slice(0, OCCASION_VISIBLE_LIMIT),
       hiddenCount,
       toggleText: showAll ? '收起' : `展开 ${hiddenCount} 个`
     }
@@ -178,6 +194,17 @@ Page({
     })
   },
 
+  buildOccasionPanelItems(occasions, selectedOccasions) {
+    return occasions.map((name, index) => ({
+      name,
+      draftName: name,
+      selected: selectedOccasions.includes(name),
+      canMoveUp: index > 0,
+      canMoveDown: index < occasions.length - 1,
+      sortIndex: index
+    }))
+  },
+
   noop() {},
 
   buildSeasonOptions(selectedSeasons) {
@@ -188,9 +215,11 @@ Page({
   },
 
   buildOccasionOptions(selectedOccasions) {
-    return wardrobe.getOccasions().map((name) => ({
+    const selected = selectedOccasions || []
+    const occasions = Array.from(new Set([...wardrobe.getOccasions(), ...selected]))
+    return occasions.map((name) => ({
       name,
-      selected: selectedOccasions.includes(name)
+      selected: selected.includes(name)
     }))
   },
 
@@ -411,17 +440,10 @@ Page({
     }
 
     const occasions = [...this.data.form.occasions, result.occasion]
-    const customOccasions = wardrobe.getCustomOccasions()
-    const customView = this.buildCustomView(customOccasions, true)
     this.setData({
       customOccasion: '',
-      customOccasions,
-      visibleCustomOccasions: customView.visibleItems,
-      showAllCustomOccasions: true,
-      hiddenCustomOccasionCount: customView.hiddenCount,
-      customOccasionToggleText: customView.toggleText,
       'form.occasions': occasions,
-      occasionOptions: this.buildOccasionOptions(occasions)
+      showAllOccasionOptions: true
     })
     this.refreshOccasions(occasions)
     wx.showToast({
@@ -430,15 +452,65 @@ Page({
     })
   },
 
-  toggleCustomOccasions() {
-    const showAllCustomOccasions = !this.data.showAllCustomOccasions
-    const customView = this.buildCustomView(this.data.customOccasions, showAllCustomOccasions)
+  toggleOccasionOptions() {
+    const showAllOccasionOptions = !this.data.showAllOccasionOptions
+    const occasionView = this.buildOccasionView(this.data.occasionOptions, showAllOccasionOptions)
     this.setData({
-      showAllCustomOccasions,
-      visibleCustomOccasions: customView.visibleItems,
-      hiddenCustomOccasionCount: customView.hiddenCount,
-      customOccasionToggleText: customView.toggleText
+      showAllOccasionOptions,
+      visibleOccasionOptions: occasionView.visibleItems,
+      hiddenOccasionOptionCount: occasionView.hiddenCount,
+      occasionOptionToggleText: occasionView.toggleText
     })
+  },
+
+  openOccasionPanel() {
+    this.refreshOccasions(this.data.form.occasions || [])
+    this.setData({
+      showOccasionPanel: true
+    })
+  },
+
+  closeOccasionPanel() {
+    this.setData({
+      showOccasionPanel: false
+    })
+  },
+
+  onOccasionDraftInput(event) {
+    const index = Number(event.currentTarget.dataset.index)
+    this.setData({
+      [`occasionPanelItems[${index}].draftName`]: event.detail.value
+    })
+  },
+
+  renameOccasionFromPanel(event) {
+    const index = Number(event.currentTarget.dataset.index)
+    const item = this.data.occasionPanelItems[index]
+    if (!item) {
+      return
+    }
+    const result = wardrobe.renameCustomOccasion(item.name, item.draftName)
+    if (!result.ok) {
+      wx.showToast({ title: result.message, icon: 'none' })
+      return
+    }
+    const occasions = this.data.form.occasions.map((occasion) => (
+      occasion === item.name ? result.occasion : occasion
+    ))
+    this.setData({ 'form.occasions': occasions })
+    this.refreshOccasions(occasions)
+    wx.showToast({ title: '已更新场合', icon: 'success' })
+  },
+
+  moveOccasionFromPanel(event) {
+    const occasion = event.currentTarget.dataset.occasion
+    const direction = Number(event.currentTarget.dataset.direction)
+    const result = wardrobe.moveCustomOccasion(occasion, direction)
+    if (!result.ok) {
+      wx.showToast({ title: result.message, icon: 'none' })
+      return
+    }
+    this.refreshOccasions(this.data.form.occasions)
   },
 
   deleteCustomOccasion(event) {
@@ -472,17 +544,61 @@ Page({
     })
   },
 
-  onDateChange(event) {
+  // ── 状态面板 ──
+
+  openStatusPanel() {
+    this.setData({ showStatusPanel: true })
+  },
+
+  closeStatusPanel() {
+    this.setData({ showStatusPanel: false })
+  },
+
+  selectStatus(event) {
+    const status = event.currentTarget.dataset.status
+    const index = this.data.statuses.indexOf(status)
     this.setData({
-      'form.purchaseDate': event.detail.value
+      statusIndex: index >= 0 ? index : 0,
+      'form.status': status,
+      showStatusPanel: false
     })
   },
 
-  onStatusChange(event) {
-    const index = Number(event.detail.value)
+  // ── 日期面板 ──
+
+  openDatePanel() {
     this.setData({
-      statusIndex: index,
-      'form.status': this.data.statuses[index]
+      showDatePanel: true
+    })
+  },
+
+  closeDatePanel() {
+    this.setData({ showDatePanel: false })
+  },
+
+  onDateChange(event) {
+    this.setData({
+      'form.purchaseDate': event.detail.value,
+      showDatePanel: false
+    })
+  },
+
+  selectQuickDate(event) {
+    const offset = Number(event.currentTarget.dataset.offset)
+    if (offset === -999) {
+      // 清空
+      this.setData({
+        'form.purchaseDate': '',
+        showDatePanel: false
+      })
+      return
+    }
+    const d = new Date()
+    d.setDate(d.getDate() + offset)
+    const date = d.toISOString().slice(0, 10)
+    this.setData({
+      'form.purchaseDate': date,
+      showDatePanel: false
     })
   },
 
@@ -506,8 +622,8 @@ Page({
 
     this.setData({
       'form.occasions': occasions,
-      occasionOptions: this.buildOccasionOptions(occasions)
     })
+    this.refreshOccasions(occasions)
   },
 
   validateForm() {

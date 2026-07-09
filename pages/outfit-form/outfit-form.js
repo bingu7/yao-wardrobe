@@ -41,6 +41,11 @@ Page({
     occasionOptions: ['不选择'],
     occasionIndex: 0,
     occasionLabel: '不选择',
+    // 场合面板
+    showOccasionPanel: false,
+    // 物品选择面板
+    showItemPanel: false,
+    editingItemPieceIndex: -1,
     // 分类面板
     showCategoryPanel: false,
     editingPieceIndex: -1,
@@ -92,14 +97,29 @@ Page({
     this.setData({ [`form.${field}`]: event.detail.value })
   },
 
-  onOccasionChange(event) {
-    const index = Number(event.detail.value)
+  // ── 场合面板 ──
+
+  openOccasionPanel() {
+    this.setData({ showOccasionPanel: true })
+  },
+
+  closeOccasionPanel() {
+    this.setData({ showOccasionPanel: false })
+  },
+
+  selectOccasion(event) {
+    const occasion = event.currentTarget.dataset.occasion
+    const options = this.data.occasionOptions
+    const index = options.indexOf(occasion)
     this.setData({
-      occasionIndex: index,
-      occasionLabel: this.data.occasionOptions[index],
-      'form.occasion': index === 0 ? '' : this.data.occasionOptions[index]
+      occasionIndex: index >= 0 ? index : 0,
+      occasionLabel: occasion,
+      'form.occasion': index <= 0 ? '' : occasion,
+      showOccasionPanel: false
     })
   },
+
+  // ── 穿搭操作 ──
 
   addPiece() {
     if (this.data.pieces.length >= 5) return
@@ -254,19 +274,33 @@ Page({
     })
   },
 
-  // ── 衣物选择 ──
+  // ── 物品选择面板 ──
 
-  onPieceItemChange(event) {
+  openItemPanel(event) {
     const index = Number(event.currentTarget.dataset.index)
+    this.setData({
+      showItemPanel: true,
+      editingItemPieceIndex: index
+    })
+  },
+
+  closeItemPanel() {
+    this.setData({ showItemPanel: false, editingItemPieceIndex: -1 })
+  },
+
+  selectItem(event) {
+    const id = event.currentTarget.dataset.id
+    const name = event.currentTarget.dataset.name
+    const index = this.data.editingItemPieceIndex
+    if (index < 0) return
     const piece = this.data.pieces[index]
-    const itemIndex = Number(event.detail.value)
-    const selected = piece.itemOptions[itemIndex]
+    const optIndex = piece.itemOptions.findIndex((opt) => opt.id === id)
     const pieces = this.data.pieces.map((p, i) =>
       i === index
-        ? { ...p, itemIndex, itemId: selected.id, displayName: selected.name }
+        ? { ...p, itemIndex: optIndex >= 0 ? optIndex : 0, itemId: id, displayName: name }
         : p
     )
-    this.setData({ pieces })
+    this.setData({ pieces, showItemPanel: false, editingItemPieceIndex: -1 })
   },
 
   // ── 保存 ──

@@ -4,6 +4,7 @@ const WISHLIST_STORAGE_KEY = 'privateWardrobeWishlist'
 const CATEGORY_STORAGE_KEY = 'privateWardrobeCustomCategories'
 const CATEGORY_MANAGED_KEY = 'privateWardrobeCategoriesManaged'
 const OCCASION_STORAGE_KEY = 'privateWardrobeCustomOccasions'
+const OCCASION_MANAGED_KEY = 'privateWardrobeOccasionsManaged'
 
 const defaultCategories = ['连衣裙', '上衣', '下装', '外套', '鞋子', '包包', '帽子/发饰', '配饰', '其他']
 const seasons = ['春', '夏', '秋', '冬']
@@ -188,14 +189,20 @@ function moveCustomCategory(category, offset) {
 
 function getCustomOccasions() {
   const saved = wx.getStorageSync(OCCASION_STORAGE_KEY)
-  return Array.isArray(saved) ? saved : []
-}
-
-function getOccasions() {
+  if (wx.getStorageSync(OCCASION_MANAGED_KEY) === true) {
+    return Array.isArray(saved) ? saved : []
+  }
   const itemOccasions = getItems().reduce((list, item) => (
     Array.isArray(item.occasions) ? [...list, ...item.occasions] : list
   ), [])
-  return uniqCategories([...defaultOccasions, ...getCustomOccasions(), ...itemOccasions])
+  const migrated = uniqCategories([...defaultOccasions, ...(Array.isArray(saved) ? saved : []), ...itemOccasions])
+  wx.setStorageSync(OCCASION_STORAGE_KEY, migrated)
+  wx.setStorageSync(OCCASION_MANAGED_KEY, true)
+  return migrated
+}
+
+function getOccasions() {
+  return getCustomOccasions()
 }
 
 function addCustomOccasion(occasion) {
@@ -208,6 +215,7 @@ function addCustomOccasion(occasion) {
     return { ok: false, message: '这个场合已存在' }
   }
   wx.setStorageSync(OCCASION_STORAGE_KEY, [...getCustomOccasions(), value])
+  wx.setStorageSync(OCCASION_MANAGED_KEY, true)
   return { ok: true, occasion: value }
 }
 
@@ -216,10 +224,58 @@ function deleteCustomOccasion(occasion) {
   if (!value) {
     return { ok: false, message: '场合不存在' }
   }
-  if (defaultOccasions.includes(value)) {
-    return { ok: false, message: '默认场合不能删除' }
-  }
   wx.setStorageSync(OCCASION_STORAGE_KEY, getCustomOccasions().filter((item) => item !== value))
+  wx.setStorageSync(OCCASION_MANAGED_KEY, true)
+  return { ok: true }
+}
+
+function renameCustomOccasion(oldOccasion, newOccasion) {
+  const oldValue = String(oldOccasion || '').trim()
+  const newValue = String(newOccasion || '').trim()
+  if (!oldValue || !newValue) {
+    return { ok: false, message: '请输入场合名称' }
+  }
+  if (oldValue === newValue) {
+    return { ok: true, occasion: oldValue }
+  }
+  const existing = getOccasions().filter((item) => item !== oldValue)
+  if (existing.includes(newValue)) {
+    return { ok: false, message: '这个场合已存在' }
+  }
+
+  wx.setStorageSync(
+    OCCASION_STORAGE_KEY,
+    getCustomOccasions().map((item) => (item === oldValue ? newValue : item))
+  )
+  wx.setStorageSync(OCCASION_MANAGED_KEY, true)
+  saveItems(getItems().map((item) => (
+    Array.isArray(item.occasions) && item.occasions.includes(oldValue)
+      ? {
+        ...item,
+        occasions: item.occasions.map((occasion) => (occasion === oldValue ? newValue : occasion)),
+        updatedAt: new Date().toISOString()
+      }
+      : item
+  )))
+  saveOutfits(getOutfits().map((outfit) => (
+    outfit.occasion === oldValue ? { ...outfit, occasion: newValue, updatedAt: new Date().toISOString() } : outfit
+  )))
+  return { ok: true, occasion: newValue }
+}
+
+function moveCustomOccasion(occasion, offset) {
+  const value = String(occasion || '').trim()
+  const occasions = getCustomOccasions()
+  const index = occasions.indexOf(value)
+  const nextIndex = index + offset
+  if (index < 0 || nextIndex < 0 || nextIndex >= occasions.length) {
+    return { ok: false, message: '已经到头了' }
+  }
+  const nextOccasions = occasions.slice()
+  const [item] = nextOccasions.splice(index, 1)
+  nextOccasions.splice(nextIndex, 0, item)
+  wx.setStorageSync(OCCASION_STORAGE_KEY, nextOccasions)
+  wx.setStorageSync(OCCASION_MANAGED_KEY, true)
   return { ok: true }
 }
 
@@ -475,6 +531,8 @@ module.exports = {
   getOccasions,
   addCustomOccasion,
   deleteCustomOccasion,
+  renameCustomOccasion,
+  moveCustomOccasion,
   getCategories,
   getCustomCategories,
   getFormCategories,

@@ -103,6 +103,12 @@
   margin-top: 14rpx;
 }
 
+.custom-category.compact {
+  grid-template-columns: minmax(0, 1fr) 160rpx;
+  gap: 12rpx;
+  align-items: center;
+}
+
 .custom-input {
   width: 100%;
   height: 72rpx;
@@ -126,6 +132,11 @@
   font-size: 26rpx;
   line-height: 1;
   padding: 0;
+}
+
+.compact .custom-button {
+  width: 160rpx;
+  font-size: 24rpx;
 }
 
 .custom-list {
@@ -227,7 +238,7 @@
 
 .chip-row.wrap {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12rpx;
 }
 
@@ -249,7 +260,7 @@
 
 .occasion-chip {
   width: 100%;
-  height: 56rpx;
+  height: 64rpx;
   font-size: 24rpx;
 }
 
@@ -257,6 +268,38 @@
   background: #2d2522;
   color: #ffffff;
   border-color: #2d2522;
+}
+
+.occasion-toggle,
+.manage-occasion-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 56rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  line-height: 1;
+  margin: 12rpx 0 0;
+  padding: 0;
+}
+
+.occasion-toggle {
+  border: 1rpx solid #eadfd7;
+  background: #ffffff;
+  color: #7b3b32;
+}
+
+.manage-occasion-button {
+  border: 1rpx dashed #d9c8bd;
+  background: #fffaf6;
+  color: #5f514a;
+}
+
+.occasion-toggle::after,
+.manage-occasion-button::after {
+  border: 0;
 }
 
 .button-stack {
@@ -278,6 +321,7 @@
 }
 
 .category-panel {
+  box-sizing: border-box;
   width: 100%;
   max-height: 72vh;
   padding: 24rpx 28rpx 28rpx;
@@ -459,4 +503,83 @@
 .panel-add .custom-button {
   width: 128rpx;
   font-size: 24rpx;
+}
+
+/* 日期面板 */
+.date-panel {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 26rpx;
+}
+
+.quick-date-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12rpx;
+}
+
+.quick-date-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 68rpx;
+  border: 1rpx solid #eadfd7;
+  border-radius: 8rpx;
+  background: #ffffff;
+  color: #5f514a;
+  font-size: 24rpx;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+}
+
+.quick-date-btn::after {
+  border: 0;
+}
+
+.date-picker-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 88rpx;
+  margin-top: 18rpx;
+  border: 1rpx solid #eadfd7;
+  border-radius: 8rpx;
+  background: #ffffff;
+  padding: 16rpx 20rpx;
+}
+
+.date-picker-title {
+  font-size: 26rpx;
+  color: #2d2522;
+  font-weight: 600;
+}
+
+.date-picker-value {
+  margin-top: 8rpx;
+  color: #9a8b83;
+  font-size: 24rpx;
+}
+
+.date-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 56rpx;
+  margin-top: 18rpx;
+  border: 1rpx solid #eadfd7;
+  border-radius: 8rpx;
+  background: #ffffff;
+  color: #b44a3f;
+  font-size: 24rpx;
+  line-height: 1;
+  padding: 0;
+}
+
+.date-clear::after {
+  border: 0;
 }

@@ -374,3 +374,31 @@
   line-height: 1;
   padding: 0;
 }
+
+/* 物品列表（复用搭配衣物面板的样式） */
+.match-list {
+  margin-top: 26rpx;
+  display: grid;
+  gap: 10rpx;
+}
+
+.match-row {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 18rpx 16rpx;
+  border: 1rpx solid #eadfd7;
+  border-radius: 8rpx;
+  background: #ffffff;
+}
+
+.match-row.selected {
+  border-color: #2d2522;
+  background: #f5f0eb;
+}
+
+.match-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #2d2522;
+}

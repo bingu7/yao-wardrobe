@@ -37,9 +37,10 @@
 
     <view class="field">
       <text class="label">想搭配已有衣物</text>
-      <picker mode="selector" range="{{matchOptions}}" range-key="name" value="{{matchIndex}}" bindchange="onMatchChange">
-        <view class="picker-value">{{matchLabel}}</view>
-      </picker>
+      <view class="picker-value category-trigger" bindtap="openMatchPanel">
+        <text>{{matchLabel}}</text>
+        <text class="trigger-arrow">›</text>
+      </view>
     </view>
 
     <view class="field">
@@ -93,6 +94,30 @@
       <view class="panel-add">
         <input class="custom-input" placeholder="没有合适的？输入新种类" value="{{customCategory}}" bindinput="onCustomCategoryInput" maxlength="10" />
         <button class="custom-button" bindtap="addCustomCategory">添加</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搭配衣物面板（简单选择，无编辑） -->
+  <view wx:if="{{showMatchPanel}}" class="panel-mask" catchtap="closeMatchPanel">
+    <view class="category-panel" catchtap="noop">
+      <view class="panel-head">
+        <view class="panel-actions">
+          <button class="panel-close" bindtap="closeMatchPanel">关闭</button>
+        </view>
+      </view>
+      <view class="match-list">
+        <view
+          wx:for="{{matchOptions}}"
+          wx:key="id"
+          class="match-row {{item.id === form.matchItemId ? 'selected' : ''}}"
+          data-id="{{item.id}}"
+          data-name="{{item.name}}"
+          bindtap="selectMatchItem"
+        >
+          <view class="match-name">{{item.name}}</view>
+          <view wx:if="{{item.category}}" class="match-category">{{item.category}}</view>
+        </view>
       </view>
     </view>
   </view>

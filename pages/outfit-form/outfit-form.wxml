@@ -15,9 +15,10 @@
 
     <view class="field">
       <text class="label">场合</text>
-      <picker mode="selector" range="{{occasionOptions}}" value="{{occasionIndex}}" bindchange="onOccasionChange">
-        <view class="picker-value">{{occasionLabel}}</view>
-      </picker>
+      <view class="picker-value category-trigger" bindtap="openOccasionPanel">
+        <text>{{occasionLabel}}</text>
+        <text class="trigger-arrow">›</text>
+      </view>
     </view>
   </view>
 
@@ -43,9 +44,10 @@
 
       <view class="field">
         <text class="label">选择衣物</text>
-        <picker mode="selector" range="{{item.itemOptions}}" range-key="name" value="{{item.itemIndex}}" bindchange="onPieceItemChange" data-index="{{index}}">
-          <view class="picker-value">{{item.displayName}}</view>
-        </picker>
+        <view class="picker-value category-trigger" data-index="{{index}}" bindtap="openItemPanel">
+          <text>{{item.displayName}}</text>
+          <text class="trigger-arrow">›</text>
+        </view>
       </view>
     </view>
 
@@ -103,6 +105,51 @@
       <view class="panel-add">
         <input class="custom-input" placeholder="没有合适的？输入新种类" value="{{customCategory}}" bindinput="onCustomCategoryInput" maxlength="10" />
         <button class="custom-button" bindtap="addCustomCategory">添加</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 场合面板（简单选择，无编辑） -->
+  <view wx:if="{{showOccasionPanel}}" class="panel-mask" catchtap="closeOccasionPanel">
+    <view class="category-panel" catchtap="noop">
+      <view class="panel-head">
+        <view class="panel-actions">
+          <button class="panel-close" bindtap="closeOccasionPanel">关闭</button>
+        </view>
+      </view>
+      <view class="category-grid">
+        <view
+          wx:for="{{occasionOptions}}"
+          wx:key="*this"
+          class="category-chip {{item === occasionLabel ? 'selected' : ''}}"
+          data-occasion="{{item}}"
+          bindtap="selectOccasion"
+        >
+          {{item}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 物品选择面板 -->
+  <view wx:if="{{showItemPanel}}" class="panel-mask" catchtap="closeItemPanel">
+    <view class="category-panel" catchtap="noop">
+      <view class="panel-head">
+        <view class="panel-actions">
+          <button class="panel-close" bindtap="closeItemPanel">关闭</button>
+        </view>
+      </view>
+      <view class="match-list">
+        <view
+          wx:for="{{pieces[editingItemPieceIndex].itemOptions}}"
+          wx:key="id"
+          class="match-row {{item.id === pieces[editingItemPieceIndex].itemId ? 'selected' : ''}}"
+          data-id="{{item.id}}"
+          data-name="{{item.name}}"
+          bindtap="selectItem"
+        >
+          <view class="match-name">{{item.name}}</view>
+        </view>
       </view>
     </view>
   </view>

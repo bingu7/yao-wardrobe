@@ -28,7 +28,8 @@ Page({
     categoryIndex: 0,
     matchOptions: [{ id: '', name: '不选择已有衣物' }],
     matchIndex: 0,
-    matchLabel: '不选择已有衣物'
+    matchLabel: '不选择已有衣物',
+    showMatchPanel: false
   },
 
   onLoad() {
@@ -297,12 +298,26 @@ Page({
     })
   },
 
-  onMatchChange(event) {
-    const index = Number(event.detail.value)
+  // ── 匹配衣物面板 ──
+
+  openMatchPanel() {
+    this.setData({ showMatchPanel: true })
+  },
+
+  closeMatchPanel() {
+    this.setData({ showMatchPanel: false })
+  },
+
+  selectMatchItem(event) {
+    const id = event.currentTarget.dataset.id
+    const name = event.currentTarget.dataset.name
+    const options = this.data.matchOptions
+    const index = options.findIndex((opt) => opt.id === id)
     this.setData({
-      matchIndex: index,
-      matchLabel: this.data.matchOptions[index].name,
-      'form.matchItemId': this.data.matchOptions[index].id
+      matchIndex: index >= 0 ? index : 0,
+      matchLabel: name,
+      'form.matchItemId': id,
+      showMatchPanel: false
     })
   },
 

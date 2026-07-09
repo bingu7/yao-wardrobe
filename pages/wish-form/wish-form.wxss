@@ -426,3 +426,39 @@
   width: 128rpx;
   font-size: 24rpx;
 }
+
+/* 搭配衣物列表 */
+.match-list {
+  margin-top: 26rpx;
+  display: grid;
+  gap: 10rpx;
+}
+
+.match-row {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 18rpx 16rpx;
+  border: 1rpx solid #eadfd7;
+  border-radius: 8rpx;
+  background: #ffffff;
+}
+
+.match-row.selected {
+  border-color: #2d2522;
+  background: #f5f0eb;
+}
+
+.match-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #2d2522;
+}
+
+.match-category {
+  font-size: 22rpx;
+  color: #9a8b83;
+  background: #f4ece7;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+}
