@@ -23,8 +23,104 @@
     </view>
   </view>
 
+  <view class="calendar-card card" bindtap="openWearCalendar">
+    <view>
+      <view class="calendar-title">今日穿搭日历</view>
+      <view class="calendar-subtitle">今天已记录 {{insights.todayRecordCount}} 件，点这里补记每天穿了什么</view>
+    </view>
+    <view class="calendar-link">记录</view>
+  </view>
+
+  <view class="insight-section" wx:if="{{insights.recentItems.length}}">
+    <view class="section-head">
+      <view class="section-title">最近穿过</view>
+    </view>
+    <scroll-view class="insight-scroll" scroll-x>
+      <view
+        wx:for="{{insights.recentItems}}"
+        wx:key="id"
+        class="mini-piece"
+        data-id="{{item.id}}"
+        bindtap="goDetail"
+      >
+        <view class="mini-image">
+          <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
+          <view wx:else class="mini-placeholder">{{item.category}}</view>
+        </view>
+        <view class="mini-name">{{item.name}}</view>
+        <view class="mini-meta">{{item.lastWornDate}}</view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="insight-section" wx:if="{{insights.staleItems.length}}">
+    <view class="section-head">
+      <view class="section-title">很久没穿</view>
+      <view class="section-note">超过 {{idleAlertDays}} 天或未记录会提示</view>
+    </view>
+    <scroll-view class="insight-scroll" scroll-x>
+      <view
+        wx:for="{{insights.staleItems}}"
+        wx:key="id"
+        class="mini-piece"
+        data-id="{{item.id}}"
+        bindtap="goDetail"
+      >
+        <view class="mini-image">
+          <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
+          <view wx:else class="mini-placeholder">{{item.category}}</view>
+        </view>
+        <view class="mini-name">{{item.name}}</view>
+        <view class="mini-meta">{{item.idleText}}</view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="insight-section" wx:if="{{insights.weeklyItems.length}}">
+    <view class="section-head">
+      <view class="section-title">本周推荐</view>
+      <view class="section-note">{{insights.currentSeason}}季可穿</view>
+    </view>
+    <scroll-view class="insight-scroll" scroll-x>
+      <view
+        wx:for="{{insights.weeklyItems}}"
+        wx:key="id"
+        class="mini-piece"
+        data-id="{{item.id}}"
+        bindtap="goDetail"
+      >
+        <view class="mini-image">
+          <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
+          <view wx:else class="mini-placeholder">{{item.category}}</view>
+        </view>
+        <view class="mini-name">{{item.name}}</view>
+        <view class="mini-meta">{{item.wearCount || 0}} 次</view>
+      </view>
+    </scroll-view>
+  </view>
+
   <view class="search-row">
-    <input class="search-input" placeholder="搜索衣物名字" value="{{keyword}}" bindinput="onSearch" />
+    <input class="search-input" placeholder="搜索名字、颜色、备注或场合" value="{{keyword}}" bindinput="onSearch" />
+  </view>
+
+  <view wx:if="{{!batchMode}}" class="batch-row">
+    <button class="batch-button" bindtap="enterBatchMode">批量管理</button>
+  </view>
+
+  <view wx:if="{{batchMode}}" class="batch-toolbar card">
+    <view class="batch-head">
+      <view class="batch-title">批量管理</view>
+      <view class="selected-count">已选 {{selectedItemIds.length}} 件</view>
+    </view>
+    <view class="batch-quick">
+      <button bindtap="selectAllFiltered">全选当前</button>
+      <button bindtap="exitBatchMode">取消</button>
+    </view>
+    <view class="batch-actions">
+      <button bindtap="openBatchCategoryPanel">改分类</button>
+      <button bindtap="openBatchOccasionPanel">加场合</button>
+      <button class="danger" bindtap="confirmBatchDelete">删除</button>
+    </view>
   </view>
 
   <view class="category-filter">
@@ -46,13 +142,15 @@
     <view
       wx:for="{{filteredItems}}"
       wx:key="id"
-      class="item-card card"
+      class="item-card card {{batchMode ? 'selectable' : ''}} {{item.selected ? 'selected' : ''}}"
       data-id="{{item.id}}"
-      bindtap="goDetail"
+      bindtap="handleItemTap"
     >
       <view class="image-wrap">
         <image wx:if="{{item.imageUrl}}" class="item-image" src="{{item.imageUrl}}" mode="aspectFill" />
         <view wx:else class="image-placeholder">{{item.category}}</view>
+        <view wx:if="{{batchMode}}" class="select-mark {{item.selected ? 'active' : ''}}">{{item.selected ? '✓' : ''}}</view>
+        <view wx:if="{{item.statusHint}}" class="status-hint">{{item.statusHint}}</view>
       </view>
       <view class="item-body">
         <view class="item-name">{{item.name}}</view>
@@ -68,5 +166,23 @@
     <view class="empty-title">还没有找到衣物</view>
     <view class="empty-text">换个分类或添加第一件衣服。</view>
     <button class="primary-button empty-button" bindtap="goAdd">添加衣物</button>
+  </view>
+
+  <view wx:if="{{showBatchCategoryPanel}}" class="modal-mask" bindtap="closeBatchCategoryPanel">
+    <view class="batch-panel" catchtap="noop">
+      <view class="panel-title">批量修改分类</view>
+      <view class="panel-grid">
+        <button wx:for="{{batchCategories}}" wx:key="*this" data-category="{{item}}" bindtap="applyBatchCategory">{{item}}</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showBatchOccasionPanel}}" class="modal-mask" bindtap="closeBatchOccasionPanel">
+    <view class="batch-panel" catchtap="noop">
+      <view class="panel-title">批量添加场合</view>
+      <view class="panel-grid">
+        <button wx:for="{{batchOccasions}}" wx:key="*this" data-occasion="{{item}}" bindtap="applyBatchOccasion">{{item}}</button>
+      </view>
+    </view>
   </view>
 </view>

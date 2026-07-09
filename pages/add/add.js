@@ -378,7 +378,7 @@ Page({
     const category = event.currentTarget.dataset.category
     wx.showModal({
       title: '删除分类',
-      content: `确定删除“${category}”吗？已保存衣物不会被删除。`,
+      content: `确定删除“${category}”吗？已保存衣物和愿望会归到“其他”。`,
       confirmColor: '#7b3b32',
       success: (res) => {
         if (!res.confirm) {
@@ -494,7 +494,7 @@ Page({
     const occasion = event.currentTarget.dataset.occasion
     wx.showModal({
       title: '删除场合',
-      content: `确定删除“${occasion}”吗？已保存衣物不会被删除。`,
+      content: `确定删除“${occasion}”吗？已保存衣物和穿搭里的这个场合也会移除。`,
       confirmColor: '#7b3b32',
       success: (res) => {
         if (!res.confirm) {
@@ -572,7 +572,7 @@ Page({
     }
     const d = new Date()
     d.setDate(d.getDate() + offset)
-    const date = d.toISOString().slice(0, 10)
+    const date = wardrobe.formatLocalDate(d)
     this.setData({
       'form.purchaseDate': date,
       showDatePanel: false

@@ -1,0 +1,64 @@
+<view class="page">
+  <view class="eyebrow">WEAR CALENDAR</view>
+  <view class="title">今日穿搭日历</view>
+  <view class="subtitle">每天记一下穿了哪几件，之后统计和闲置提醒都会更准</view>
+
+  <view class="today-card card section">
+    <view>
+      <view class="card-label">今天已记录</view>
+      <view class="today-count">{{todayCount}} 件</view>
+    </view>
+    <picker mode="date" value="{{selectedDate}}" bindchange="onDateChange">
+      <view class="date-button">{{selectedDate}}</view>
+    </picker>
+  </view>
+
+  <scroll-view class="day-strip section" scroll-x>
+    <button
+      wx:for="{{days}}"
+      wx:key="date"
+      class="day-pill {{selectedDate === item.date ? 'active' : ''}}"
+      data-date="{{item.date}}"
+      bindtap="selectDay"
+    >
+      <text class="day-date">{{item.monthDay}}</text>
+      <text class="day-count">{{item.itemCount}} 件</text>
+    </button>
+  </scroll-view>
+
+  <view class="record-card card section">
+    <view class="block-head">
+      <view>
+        <view class="block-title">当天穿过</view>
+        <view class="block-subtitle">{{selectedItems.length ? '已选择这些衣物' : '还没有记录衣物'}}</view>
+      </view>
+      <button class="clear-button" bindtap="clearRecord">清空</button>
+    </view>
+    <view wx:if="{{selectedItems.length}}" class="selected-list">
+      <text wx:for="{{selectedItems}}" wx:key="id" class="selected-chip">{{item.name}}</text>
+    </view>
+  </view>
+
+  <view class="item-list section">
+    <button
+      wx:for="{{itemOptions}}"
+      wx:key="id"
+      class="item-option card {{item.selected ? 'selected' : ''}}"
+      data-id="{{item.id}}"
+      bindtap="toggleItem"
+    >
+      <view class="option-image">
+        <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
+        <view wx:else class="option-placeholder">{{item.category}}</view>
+      </view>
+      <view class="option-body">
+        <view class="option-name">{{item.name}}</view>
+        <view class="option-meta">{{item.category}}</view>
+      </view>
+    </button>
+  </view>
+
+  <view class="bottom-actions">
+    <button class="primary-button" bindtap="saveRecord">保存这天穿搭</button>
+  </view>
+</view>

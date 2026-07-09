@@ -32,13 +32,14 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: 132rpx;
-  height: 58rpx;
+  width: 124rpx;
+  max-width: 124rpx;
+  height: 52rpx;
   border: 1rpx solid #2a2421;
   border-radius: 999rpx;
   background: #2a2421;
   color: #ffffff;
-  font-size: 24rpx;
+  font-size: 23rpx;
   line-height: 1;
   margin: 8rpx 0 0;
   padding: 0;
@@ -70,7 +71,8 @@
 .filter-row {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 10rpx;
   width: 100%;
 }
 
@@ -78,20 +80,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 calc(50% - 6rpx);
-  width: calc(50% - 6rpx);
-  max-width: calc(50% - 6rpx);
-  min-width: 0;
-  height: 60rpx;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 88rpx;
+  max-width: 220rpx;
+  height: 52rpx;
   box-sizing: border-box;
   border: 1rpx solid #daccc4;
   border-radius: 999rpx;
   background: transparent;
   color: #5f514a;
-  font-size: 24rpx;
+  font-size: 23rpx;
   line-height: 1;
-  margin: 0 0 12rpx;
-  padding: 0 12rpx;
+  margin: 0 0 2rpx;
+  padding: 0 22rpx;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -107,16 +109,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48%;
-  height: 54rpx;
+  width: auto;
+  min-width: 132rpx;
+  height: 48rpx;
   border: 1rpx solid #e8ded6;
   border-radius: 999rpx;
   background: rgba(255, 252, 248, 0.7);
   color: #8b3f37;
-  font-size: 23rpx;
+  font-size: 22rpx;
   line-height: 1;
-  margin: 12rpx auto 0;
-  padding: 0;
+  margin: 10rpx 0 0;
+  padding: 0 20rpx;
 }
 
 .outfit-card {

@@ -53,8 +53,8 @@ Page({
   applyFilters() {
     const keyword = this.data.keyword.trim().toLowerCase()
     const filteredOutfits = this.data.outfits.filter((outfit) => {
-      const pieceNames = outfit.pieces.map((piece) => piece.name).join(' ')
-      const matchKeyword = !keyword || `${outfit.name} ${outfit.note || ''} ${pieceNames}`.toLowerCase().includes(keyword)
+      const pieceText = outfit.pieces.map((piece) => `${piece.name} ${piece.category}`).join(' ')
+      const matchKeyword = !keyword || `${outfit.name} ${outfit.occasion || ''} ${outfit.note || ''} ${pieceText}`.toLowerCase().includes(keyword)
       const matchOccasion = this.data.activeOccasion === '全部' || (outfit.occasion || '未设置') === this.data.activeOccasion
       return matchKeyword && matchOccasion
     })

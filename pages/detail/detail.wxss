@@ -114,6 +114,33 @@
   font-size: 22rpx;
 }
 
+.idle-tip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  margin-top: 22rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 10rpx;
+  background: #f0e5df;
+}
+
+.idle-label {
+  flex: 0 0 auto;
+  color: #8b3f37;
+  font-size: 25rpx;
+  font-weight: 700;
+}
+
+.idle-text {
+  min-width: 0;
+  color: #5f514a;
+  font-size: 24rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .worn-button {
   margin-top: 24rpx;
 }

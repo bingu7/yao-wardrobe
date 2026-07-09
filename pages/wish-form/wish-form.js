@@ -14,6 +14,7 @@ function emptyForm() {
 
 Page({
   data: {
+    isEditing: false,
     form: emptyForm(),
     categories: [],
     customCategories: [],
@@ -38,6 +39,11 @@ Page({
 
   onShow() {
     this.refreshOptions()
+    const editingId = wx.getStorageSync('wishlistEditingId')
+    if (editingId) {
+      wx.removeStorageSync('wishlistEditingId')
+      this.loadWish(editingId)
+    }
   },
 
   refreshOptions() {
@@ -68,6 +74,34 @@ Page({
       customCategoryToggleText: customView.toggleText,
       categoryPanelItems: wardrobe.buildCategoryPanelItems(wardrobe.getFormCategories(), customCategories, this.data.form.category),
       matchOptions: [{ id: '', name: '不选择已有衣物' }, ...items]
+    })
+  },
+
+  loadWish(id) {
+    const wish = wardrobe.getWishlistItem(id)
+    if (!wish) {
+      wx.showToast({
+        title: '愿望不存在',
+        icon: 'none'
+      })
+      return
+    }
+    const categories = wardrobe.getFormCategories()
+    const matchOptions = [{ id: '', name: '不选择已有衣物' }, ...wardrobe.getItems()]
+    const matchIndex = Math.max(0, matchOptions.findIndex((item) => item.id === wish.matchItemId))
+    this.setData({
+      isEditing: true,
+      categories,
+      matchOptions,
+      form: {
+        ...emptyForm(),
+        ...wish,
+        matchItemId: matchIndex > 0 ? wish.matchItemId : ''
+      },
+      categoryIndex: Math.max(0, categories.indexOf(wish.category)),
+      matchIndex,
+      matchLabel: matchOptions[matchIndex] ? matchOptions[matchIndex].name : '不选择已有衣物',
+      categoryPanelItems: wardrobe.buildCategoryPanelItems(categories, wardrobe.getCustomCategories(), wish.category)
     })
   },
 
@@ -317,7 +351,7 @@ Page({
       return
     }
 
-    wardrobe.addWishlistItem({
+    wardrobe.upsertWishlistItem({
       ...form,
       name: form.name.trim(),
       expectedPrice: priceText === '' ? '' : Number(Number(priceText).toFixed(2)),
@@ -325,7 +359,7 @@ Page({
     })
 
     wx.showToast({
-      title: '已加入愿望清单',
+      title: this.data.isEditing ? '已更新愿望' : '已加入愿望清单',
       icon: 'success'
     })
 
