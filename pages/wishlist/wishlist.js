@@ -14,6 +14,10 @@ Page({
     filteredWishlist: []
   },
 
+  onLoad() {
+    this.searchDebounce = wardrobe.createDebounce(300)
+  },
+
   onShow() {
     this.loadData()
   },
@@ -68,7 +72,7 @@ Page({
 
   onSearch(event) {
     this.setData({ keyword: event.detail.value })
-    this.applyFilters()
+    this.searchDebounce(() => this.applyFilters())
   },
 
   setCategory(event) {

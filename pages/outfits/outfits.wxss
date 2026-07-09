@@ -204,6 +204,33 @@
   line-height: 1.5;
 }
 
+.outfit-actions {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 18rpx;
+  justify-content: flex-end;
+}
+
+.edit-mini {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 92rpx;
+  height: 48rpx;
+  border: 1rpx solid #d9c8bd;
+  border-radius: 999rpx;
+  background: transparent;
+  color: #5f514a;
+  font-size: 24rpx;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+}
+
+.edit-mini::after {
+  border: 0;
+}
+
 .empty {
   padding: 44rpx 28rpx;
   text-align: center;

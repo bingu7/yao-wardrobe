@@ -106,14 +106,14 @@ Page({
   refreshCategories(selectedCategory) {
     const categories = wardrobe.getFormCategories()
     const customCategories = wardrobe.getCustomCategories()
-    const customView = this.buildCustomView(customCategories, this.data.showAllCustomCategories)
+    const customView = wardrobe.buildCustomView(customCategories, this.data.showAllCustomCategories)
     this.setData({
       categories,
       customCategories,
       visibleCustomCategories: customView.visibleItems,
       hiddenCustomCategoryCount: customView.hiddenCount,
       customCategoryToggleText: customView.toggleText,
-      categoryPanelItems: this.buildCategoryPanelItems(categories, customCategories, selectedCategory || this.data.form.category),
+      categoryPanelItems: wardrobe.buildCategoryPanelItems(categories, customCategories, selectedCategory || this.data.form.category),
       categoryIndex: selectedCategory ? Math.max(0, categories.indexOf(selectedCategory)) : this.data.categoryIndex
     })
   },
@@ -162,16 +162,6 @@ Page({
     this.refreshOccasions(item.occasions || [])
   },
 
-  buildCustomView(items, showAll) {
-    const hiddenCount = Math.max(items.length - CUSTOM_VISIBLE_LIMIT, 0)
-    const visibleItems = showAll ? items : items.slice(0, CUSTOM_VISIBLE_LIMIT)
-    return {
-      visibleItems,
-      hiddenCount,
-      toggleText: showAll ? '收起' : `展开 ${hiddenCount} 个`
-    }
-  },
-
   buildOccasionView(items, showAll) {
     const hiddenCount = Math.max(items.length - OCCASION_VISIBLE_LIMIT, 0)
     return {
@@ -179,19 +169,6 @@ Page({
       hiddenCount,
       toggleText: showAll ? '收起' : `展开 ${hiddenCount} 个`
     }
-  },
-
-  buildCategoryPanelItems(categories, customCategories, selectedCategory) {
-    return categories.map((name, index) => {
-      return {
-        name,
-        draftName: name,
-        selected: name === selectedCategory,
-        canMoveUp: index > 0,
-        canMoveDown: index < categories.length - 1,
-        sortIndex: index
-      }
-    })
   },
 
   buildOccasionPanelItems(occasions, selectedOccasions) {
@@ -311,7 +288,7 @@ Page({
       'errors.category': '',
       categoryIndex: Math.max(0, categories.indexOf(category)),
       showCategoryPanel: false,
-      categoryPanelItems: this.buildCategoryPanelItems(categories, this.data.customCategories, category)
+      categoryPanelItems: wardrobe.buildCategoryPanelItems(categories, this.data.customCategories, category)
     })
   },
 
@@ -334,7 +311,7 @@ Page({
 
     const categories = wardrobe.getFormCategories()
     const customCategories = wardrobe.getCustomCategories()
-    const customView = this.buildCustomView(customCategories, true)
+    const customView = wardrobe.buildCustomView(customCategories, true)
     this.setData({
       categories,
       customCategories,
@@ -342,7 +319,7 @@ Page({
       showAllCustomCategories: true,
       hiddenCustomCategoryCount: customView.hiddenCount,
       customCategoryToggleText: customView.toggleText,
-      categoryPanelItems: this.buildCategoryPanelItems(categories, customCategories, result.category),
+      categoryPanelItems: wardrobe.buildCategoryPanelItems(categories, customCategories, result.category),
       showCategoryPanel: true,
       customCategory: '',
       categoryIndex: categories.indexOf(result.category),
@@ -388,7 +365,7 @@ Page({
 
   toggleCustomCategories() {
     const showAllCustomCategories = !this.data.showAllCustomCategories
-    const customView = this.buildCustomView(this.data.customCategories, showAllCustomCategories)
+    const customView = wardrobe.buildCustomView(this.data.customCategories, showAllCustomCategories)
     this.setData({
       showAllCustomCategories,
       visibleCustomCategories: customView.visibleItems,

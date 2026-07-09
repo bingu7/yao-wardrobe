@@ -51,7 +51,8 @@ Page({
     editingPieceIndex: -1,
     categoryPanelItems: [],
     isCategoryEditing: false,
-    customCategory: ''
+    customCategory: '',
+    isEditing: false
   },
 
   onLoad() {
@@ -60,6 +61,55 @@ Page({
 
   onShow() {
     this.refreshItemOptions()
+    // 检查是否为编辑/复制模式
+    const editingId = wx.getStorageSync('outfitEditingId')
+    if (editingId) {
+      wx.removeStorageSync('outfitEditingId')
+      this.loadOutfitForEdit(editingId, true)
+      return
+    }
+    const copyData = wx.getStorageSync('outfitCopyData')
+    if (copyData) {
+      wx.removeStorageSync('outfitCopyData')
+      this.loadOutfitForEdit(copyData, false)
+      return
+    }
+  },
+
+  loadOutfitForEdit(data, keepId) {
+    const outfit = keepId ? wardrobe.getOutfit(data) : data
+    if (!outfit) {
+      wx.showToast({ title: '穿搭不存在', icon: 'none' })
+      return
+    }
+    const items = wardrobe.getItems()
+    const allCategories = wardrobe.getFormCategories()
+    const occasionIndex = outfit.occasion ? Math.max(0, this.data.occasionOptions.indexOf(outfit.occasion)) : 0
+    
+    // 构建 pieces
+    const pieces = (outfit.pieces || []).map((p) => {
+      const pieceData = buildPieceData(items, allCategories, p.category)
+      const itemIndex = pieceData.itemOptions.findIndex((opt) => opt.id === p.itemId)
+      return {
+        ...pieceData,
+        itemIndex: itemIndex >= 0 ? itemIndex : 0,
+        itemId: p.itemId,
+        displayName: itemIndex > 0 ? pieceData.itemOptions[itemIndex].name : '选择衣物'
+      }
+    })
+    
+    this.setData({
+      isEditing: true,
+      form: {
+        name: outfit.name || '',
+        occasion: outfit.occasion || '',
+        note: outfit.note || ''
+      },
+      pieces: pieces.length ? pieces : [buildPieceData(items, allCategories, '')],
+      editingId: keepId ? outfit.id : undefined,
+      occasionIndex,
+      occasionLabel: this.data.occasionOptions[occasionIndex] || '不选择'
+    })
   },
 
   refreshItemOptions() {
@@ -323,12 +373,16 @@ Page({
 
     wardrobe.upsertOutfit({
       ...form,
+      ...(this.data.editingId ? { id: this.data.editingId } : {}),
       name: form.name.trim(),
       note: form.note.trim(),
       pieces: selectedPieces
     })
 
-    wx.showToast({ title: '已保存穿搭', icon: 'success' })
+    wx.showToast({
+      title: this.data.editingId ? '已更新穿搭' : '已保存穿搭',
+      icon: 'success'
+    })
     wx.navigateBack()
   },
 

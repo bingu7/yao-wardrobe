@@ -46,6 +46,10 @@
         </view>
       </view>
       <view wx:if="{{item.note}}" class="outfit-note">{{item.note}}</view>
+      <view class="outfit-actions">
+        <button class="edit-mini" data-id="{{item.id}}" bindtap="copyOutfit">复制</button>
+        <button class="edit-mini" data-id="{{item.id}}" bindtap="editOutfit">编辑</button>
+      </view>
     </view>
   </view>
 

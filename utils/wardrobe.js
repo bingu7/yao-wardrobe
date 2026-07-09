@@ -137,6 +137,14 @@ function deleteCustomCategory(category) {
   }
   wx.setStorageSync(CATEGORY_STORAGE_KEY, getCustomCategories().filter((item) => item !== value))
   wx.setStorageSync(CATEGORY_MANAGED_KEY, true)
+  // 将使用该分类的衣物归为「其他」
+  const fallback = '其他'
+  saveItems(getItems().map((item) => (
+    item.category === value ? { ...item, category: fallback, updatedAt: new Date().toISOString() } : item
+  )))
+  saveWishlist(getWishlist().map((item) => (
+    item.category === value ? { ...item, category: fallback, updatedAt: new Date().toISOString() } : item
+  )))
   return { ok: true }
 }
 
@@ -289,6 +297,38 @@ function normalizeItem(item) {
   }
 }
 
+/** 公用：构建分类面板的 items 数组 */
+function buildCategoryPanelItems(categories, customCategories, selectedCategory) {
+  return categories.map((name, index) => ({
+    name,
+    draftName: name,
+    selected: name === selectedCategory,
+    canMoveUp: index > 0,
+    canMoveDown: index < categories.length - 1,
+    sortIndex: index
+  }))
+}
+
+/** 公用：构建自定义列表的展开/收起视图 */
+function buildCustomView(items, showAll, limit) {
+  const count = limit || 2
+  const hiddenCount = Math.max(items.length - count, 0)
+  return {
+    visibleItems: showAll ? items : items.slice(0, count),
+    hiddenCount,
+    toggleText: showAll ? '收起' : `展开 ${hiddenCount} 个`
+  }
+}
+
+/** 公用：搜索防抖 */
+function createDebounce(wait) {
+  let timer = null
+  return function (fn) {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(fn, wait || 300)
+  }
+}
+
 function saveItems(items) {
   wx.setStorageSync(STORAGE_KEY, items)
 }
@@ -417,6 +457,17 @@ function saveOutfits(outfits) {
   wx.setStorageSync(OUTFIT_STORAGE_KEY, outfits)
 }
 
+function getOutfit(id) {
+  return getOutfits().find((o) => o.id === id) || null
+}
+
+function copyOutfit(id) {
+  const outfit = getOutfit(id)
+  if (!outfit) return null
+  const { id: _id, createdAt: _created, updatedAt: _updated, ...rest } = outfit
+  return rest
+}
+
 function upsertOutfit(outfit) {
   const now = new Date().toISOString()
   const outfits = getOutfits()
@@ -536,6 +587,9 @@ module.exports = {
   getCategories,
   getCustomCategories,
   getFormCategories,
+  buildCategoryPanelItems,
+  buildCustomView,
+  createDebounce,
   addCustomCategory,
   deleteCustomCategory,
   renameCustomCategory,
@@ -547,6 +601,8 @@ module.exports = {
   markWorn,
   getCostPerWear,
   getOutfits,
+  getOutfit,
+  copyOutfit,
   upsertOutfit,
   deleteOutfit,
   hydrateOutfit,

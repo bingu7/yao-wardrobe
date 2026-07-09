@@ -43,7 +43,7 @@ Page({
   refreshOptions() {
     const items = wardrobe.getItems()
     const customCategories = wardrobe.getCustomCategories()
-    const customView = this.buildCustomView(customCategories, this.data.showAllCustomCategories)
+    const customView = wardrobe.buildCustomView(customCategories, this.data.showAllCustomCategories)
     // 刷新分类面板和匹配列表，但不重置表单已填写的内容
     this.setData({
       categories: wardrobe.getFormCategories(),
@@ -51,7 +51,7 @@ Page({
       visibleCustomCategories: customView.visibleItems,
       hiddenCustomCategoryCount: customView.hiddenCount,
       customCategoryToggleText: customView.toggleText,
-      categoryPanelItems: this.buildCategoryPanelItems(wardrobe.getFormCategories(), customCategories, this.data.form.category),
+      categoryPanelItems: wardrobe.buildCategoryPanelItems(wardrobe.getFormCategories(), customCategories, this.data.form.category),
       matchOptions: [{ id: '', name: '不选择已有衣物' }, ...items]
     })
   },
@@ -59,37 +59,15 @@ Page({
   loadOptions() {
     const items = wardrobe.getItems()
     const customCategories = wardrobe.getCustomCategories()
-    const customView = this.buildCustomView(customCategories, this.data.showAllCustomCategories)
+    const customView = wardrobe.buildCustomView(customCategories, this.data.showAllCustomCategories)
     this.setData({
       categories: wardrobe.getFormCategories(),
       customCategories,
       visibleCustomCategories: customView.visibleItems,
       hiddenCustomCategoryCount: customView.hiddenCount,
       customCategoryToggleText: customView.toggleText,
-      categoryPanelItems: this.buildCategoryPanelItems(wardrobe.getFormCategories(), customCategories, this.data.form.category),
+      categoryPanelItems: wardrobe.buildCategoryPanelItems(wardrobe.getFormCategories(), customCategories, this.data.form.category),
       matchOptions: [{ id: '', name: '不选择已有衣物' }, ...items]
-    })
-  },
-
-  buildCustomView(items, showAll) {
-    const hiddenCount = Math.max(items.length - CUSTOM_VISIBLE_LIMIT, 0)
-    const visibleItems = showAll ? items : items.slice(0, CUSTOM_VISIBLE_LIMIT)
-    return {
-      visibleItems,
-      hiddenCount,
-      toggleText: showAll ? '收起' : `展开 ${hiddenCount} 个`
-    }
-  },
-
-  buildCategoryPanelItems(categories, customCategories, selectedCategory) {
-    return categories.map((name, index) => {
-      return {
-        name,
-        draftName: name,
-        selected: name === selectedCategory,
-        canMoveUp: index > 0,
-        canMoveDown: index < categories.length - 1
-      }
     })
   },
 
@@ -172,7 +150,7 @@ Page({
       categoryIndex: Math.max(0, categories.indexOf(category)),
       'form.category': category,
       showCategoryPanel: false,
-      categoryPanelItems: this.buildCategoryPanelItems(categories, this.data.customCategories, category)
+      categoryPanelItems: wardrobe.buildCategoryPanelItems(categories, this.data.customCategories, category)
     })
   },
 
@@ -195,7 +173,7 @@ Page({
 
     const categories = wardrobe.getFormCategories()
     const customCategories = wardrobe.getCustomCategories()
-    const customView = this.buildCustomView(customCategories, true)
+    const customView = wardrobe.buildCustomView(customCategories, true)
     this.setData({
       categories,
       customCategories,
@@ -203,7 +181,7 @@ Page({
       showAllCustomCategories: true,
       hiddenCustomCategoryCount: customView.hiddenCount,
       customCategoryToggleText: customView.toggleText,
-      categoryPanelItems: this.buildCategoryPanelItems(categories, customCategories, result.category),
+      categoryPanelItems: wardrobe.buildCategoryPanelItems(categories, customCategories, result.category),
       showCategoryPanel: true,
       customCategory: '',
       categoryIndex: categories.indexOf(result.category),
@@ -247,7 +225,7 @@ Page({
 
   toggleCustomCategories() {
     const showAllCustomCategories = !this.data.showAllCustomCategories
-    const customView = this.buildCustomView(this.data.customCategories, showAllCustomCategories)
+    const customView = wardrobe.buildCustomView(this.data.customCategories, showAllCustomCategories)
     this.setData({
       showAllCustomCategories,
       visibleCustomCategories: customView.visibleItems,
@@ -273,7 +251,7 @@ Page({
         }
         const categories = wardrobe.getFormCategories()
         const customCategories = wardrobe.getCustomCategories()
-        const customView = this.buildCustomView(customCategories, this.data.showAllCustomCategories)
+        const customView = wardrobe.buildCustomView(customCategories, this.data.showAllCustomCategories)
         const clearSelected = this.data.form.category === category
         const selectedCategory = clearSelected ? '' : this.data.form.category
         this.setData({
@@ -282,7 +260,7 @@ Page({
           visibleCustomCategories: customView.visibleItems,
           hiddenCustomCategoryCount: customView.hiddenCount,
           customCategoryToggleText: customView.toggleText,
-          categoryPanelItems: this.buildCategoryPanelItems(categories, customCategories, selectedCategory),
+          categoryPanelItems: wardrobe.buildCategoryPanelItems(categories, customCategories, selectedCategory),
           'form.category': selectedCategory,
           categoryIndex: 0
         })

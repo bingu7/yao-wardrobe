@@ -19,6 +19,10 @@ Page({
     }
   },
 
+  onLoad() {
+    this.searchDebounce = wardrobe.createDebounce(300)
+  },
+
   onShow() {
     this.loadItems()
   },
@@ -61,7 +65,7 @@ Page({
 
   onSearch(event) {
     this.setData({ keyword: event.detail.value })
-    this.applyFilters()
+    this.searchDebounce(() => this.applyFilters())
   },
 
   setCategory(event) {

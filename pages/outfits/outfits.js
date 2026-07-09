@@ -14,6 +14,10 @@ Page({
     filteredOutfits: []
   },
 
+  onLoad() {
+    this.searchDebounce = wardrobe.createDebounce(300)
+  },
+
   onShow() {
     this.loadData()
   },
@@ -60,7 +64,7 @@ Page({
 
   onSearch(event) {
     this.setData({ keyword: event.detail.value })
-    this.applyFilters()
+    this.searchDebounce(() => this.applyFilters())
   },
 
   setOccasion(event) {
@@ -98,5 +102,25 @@ Page({
         }
       }
     })
+  },
+
+  editOutfit(event) {
+    const id = event.currentTarget.dataset.id
+    wx.setStorageSync('outfitEditingId', id)
+    wx.navigateTo({
+      url: '/pages/outfit-form/outfit-form'
+    })
+  },
+
+  copyOutfit(event) {
+    const id = event.currentTarget.dataset.id
+    const copy = wardrobe.copyOutfit(id)
+    if (copy) {
+      // 用已有数据填充表单，让用户修改后保存（不带 id 即为新建）
+      wx.setStorageSync('outfitCopyData', copy)
+      wx.navigateTo({
+        url: '/pages/outfit-form/outfit-form'
+      })
+    }
   }
 })
