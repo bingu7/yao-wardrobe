@@ -5,7 +5,10 @@
       <view class="title">我的衣橱</view>
       <view class="subtitle">把喜欢的裙子和衣服都收好</view>
     </view>
-    <button class="add-btn" bindtap="goAdd">+ 添加</button>
+    <view class="hero-btns">
+      <button class="manage-btn" bindtap="openManagePanel">管理</button>
+      <button class="add-btn" bindtap="goAdd">+ 添加</button>
+    </view>
   </view>
 
   <view class="overview">
@@ -68,5 +71,75 @@
     <view class="empty-title">还没有找到衣物</view>
     <view class="empty-text">换个分类或添加第一件衣服。</view>
     <button class="primary-button empty-button" bindtap="goAdd">添加衣物</button>
+  </view>
+
+  <!-- 管理面板 -->
+  <view wx:if="{{showManagePanel}}" class="panel-mask" catchtap="closeManagePanel">
+    <view class="category-panel" catchtap="noop">
+      <view class="panel-head">
+        <view class="manage-tabs">
+          <button class="manage-tab {{manageTab === 'category' ? 'active' : ''}}" data-tab="category" bindtap="switchManageTab">分类</button>
+          <button class="manage-tab {{manageTab === 'occasion' ? 'active' : ''}}" data-tab="occasion" bindtap="switchManageTab">场合</button>
+          <button class="panel-close manage-close" bindtap="closeManagePanel">完成</button>
+        </view>
+      </view>
+
+      <!-- 分类管理 -->
+      <view wx:if="{{manageTab === 'category'}}">
+        <view class="panel-head" style="margin-top: 12rpx;">
+          <view class="panel-actions" style="grid-template-columns: 1fr;">
+            <button class="panel-action" bindtap="toggleCategoryEditing">{{isCategoryEditing ? '完成编辑' : '编辑分类'}}</button>
+          </view>
+        </view>
+
+        <view wx:if="{{!isCategoryEditing}}" class="category-grid" style="margin-top: 14rpx;">
+          <view
+            wx:for="{{categoryPanelItems}}"
+            wx:key="name"
+            class="category-chip"
+            data-category="{{item.name}}"
+          >
+            {{item.name}}
+          </view>
+        </view>
+
+        <view wx:else class="category-edit-list">
+          <view wx:for="{{categoryPanelItems}}" wx:key="name" class="category-edit-card">
+            <button class="delete-x" data-category="{{item.name}}" catchtap="deleteCustomCategory">×</button>
+            <input class="category-edit-input" value="{{item.draftName}}" data-index="{{index}}" bindinput="onCategoryDraftInput" maxlength="10" />
+            <view class="category-card-actions">
+              <button class="mini-button save-mini" data-index="{{index}}" bindtap="renameCategoryFromPanel">保存</button>
+              <button class="mini-button" disabled="{{!item.canMoveUp}}" data-category="{{item.name}}" data-direction="-1" bindtap="moveCategoryFromPanel">上移</button>
+              <button class="mini-button" disabled="{{!item.canMoveDown}}" data-category="{{item.name}}" data-direction="1" bindtap="moveCategoryFromPanel">下移</button>
+            </view>
+          </view>
+        </view>
+
+        <view class="panel-add">
+          <input class="custom-input" placeholder="添加新分类" value="{{customCategory}}" bindinput="onCustomCategoryInput" maxlength="10" />
+          <button class="custom-button" bindtap="addCustomCategory">添加</button>
+        </view>
+      </view>
+
+      <!-- 场合管理 -->
+      <view wx:if="{{manageTab === 'occasion'}}">
+        <view class="category-edit-list" style="margin-top: 18rpx;">
+          <view wx:for="{{occasionPanelItems}}" wx:key="name" class="category-edit-card">
+            <button class="delete-x" data-occasion="{{item.name}}" catchtap="deleteCustomOccasion">×</button>
+            <input class="category-edit-input" value="{{item.draftName}}" data-index="{{index}}" bindinput="onOccasionDraftInput" maxlength="10" />
+            <view class="category-card-actions">
+              <button class="mini-button save-mini" data-index="{{index}}" bindtap="renameOccasionFromPanel">保存</button>
+              <button class="mini-button" disabled="{{!item.canMoveUp}}" data-occasion="{{item.name}}" data-direction="-1" bindtap="moveOccasionFromPanel">上移</button>
+              <button class="mini-button" disabled="{{!item.canMoveDown}}" data-occasion="{{item.name}}" data-direction="1" bindtap="moveOccasionFromPanel">下移</button>
+            </view>
+          </view>
+        </view>
+
+        <view class="panel-add">
+          <input class="custom-input" placeholder="添加新场合" value="{{customOccasion}}" bindinput="onCustomOccasionInput" maxlength="10" />
+          <button class="custom-button" bindtap="addCustomOccasion">添加</button>
+        </view>
+      </view>
+    </view>
   </view>
 </view>
