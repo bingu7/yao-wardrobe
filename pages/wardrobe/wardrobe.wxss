@@ -6,12 +6,6 @@
   padding-top: 6rpx;
 }
 
-.hero-btns {
-  display: flex;
-  gap: 12rpx;
-  flex: 0 0 auto;
-}
-
 .eyebrow {
   color: #8b3f37;
   font-size: 20rpx;
@@ -223,66 +217,4 @@
 
 .empty-button {
   margin-top: 28rpx;
-}
-
-.manage-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 92rpx;
-  height: 56rpx;
-  border: 1rpx solid #d9c8bd;
-  border-radius: 999rpx;
-  background: transparent;
-  color: #5f514a;
-  font-size: 24rpx;
-  font-weight: 500;
-  line-height: 1;
-  margin: 10rpx 0 0;
-  padding: 0;
-}
-
-.manage-btn::after {
-  border: 0;
-}
-
-.manage-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 12rpx;
-  width: 100%;
-}
-
-.manage-tab {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 56rpx;
-  border: 1rpx solid #eadfd7;
-  border-radius: 8rpx;
-  background: #ffffff;
-  color: #5f514a;
-  font-size: 24rpx;
-  line-height: 1;
-  margin: 0;
-  padding: 0;
-}
-
-.manage-tab.active {
-  background: #2d2522;
-  color: #ffffff;
-  border-color: #2d2522;
-}
-
-.manage-tab::after,
-.manage-close::after {
-  border: 0;
-}
-
-.manage-close {
-  background: #2d2522 !important;
-  color: #ffffff !important;
-  border-color: #2d2522 !important;
 }
