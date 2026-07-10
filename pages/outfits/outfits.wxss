@@ -22,7 +22,7 @@
 
 .subtitle {
   margin-top: 8rpx;
-  color: #9a8b83;
+  color: #6b5a52;
   font-size: 26rpx;
   line-height: 1.5;
 }
@@ -82,7 +82,7 @@
   width: calc(50% - 6rpx);
   max-width: calc(50% - 6rpx);
   min-width: 0;
-  height: 60rpx;
+  height: 72rpx;
   box-sizing: border-box;
   border: 1rpx solid #daccc4;
   border-radius: 999rpx;
@@ -108,7 +108,7 @@
   align-items: center;
   justify-content: center;
   width: 48%;
-  height: 54rpx;
+  height: 72rpx;
   border: 1rpx solid #e8ded6;
   border-radius: 999rpx;
   background: rgba(255, 252, 248, 0.7);
@@ -142,7 +142,7 @@
   align-items: center;
   justify-content: center;
   width: 92rpx;
-  height: 48rpx;
+  min-height: 72rpx;
   border: 1rpx solid #8b3f37;
   border-radius: 999rpx;
   background: transparent;
@@ -151,6 +151,21 @@
   line-height: 1;
   margin: 0;
   padding: 0;
+}
+
+.delete-mini::after,
+.edit-mini::after {
+  border: 0;
+}
+
+.outfit-warning {
+  margin-top: 16rpx;
+  padding: 14rpx 16rpx;
+  border-radius: 8rpx;
+  background: #fff1e8;
+  color: #8b3f37;
+  font-size: 24rpx;
+  line-height: 1.4;
 }
 
 .piece-grid {
@@ -182,7 +197,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9a8b83;
+  color: #6b5a52;
   font-size: 20rpx;
   text-align: center;
 }
@@ -216,7 +231,7 @@
   align-items: center;
   justify-content: center;
   width: 92rpx;
-  height: 48rpx;
+  min-height: 72rpx;
   border: 1rpx solid #d9c8bd;
   border-radius: 999rpx;
   background: transparent;
@@ -243,7 +258,7 @@
 
 .empty-text {
   margin-top: 10rpx;
-  color: #8b7d75;
+  color: #6b5a52;
   font-size: 26rpx;
 }
 

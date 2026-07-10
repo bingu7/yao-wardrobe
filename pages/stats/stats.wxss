@@ -14,7 +14,7 @@
 
 .subtitle {
   margin-top: 8rpx;
-  color: #9a8b83;
+  color: #6b5a52;
   font-size: 26rpx;
 }
 
@@ -42,8 +42,28 @@
 .label {
   display: block;
   margin-top: 8rpx;
-  color: #9a8b83;
+  color: #6b5a52;
   font-size: 24rpx;
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18rpx;
+}
+
+.insight-card {
+  min-width: 0;
+  padding: 24rpx 20rpx;
+  background: rgba(255, 252, 248, 0.82);
+}
+
+.insight-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 28rpx;
+  font-weight: 600;
 }
 
 .category-card {

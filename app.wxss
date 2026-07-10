@@ -30,7 +30,7 @@ button {
 }
 
 .muted {
-  color: #9a8b83;
+  color: #6b5a52;
 }
 
 .primary-button {
@@ -51,7 +51,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 80rpx;
+  height: 88rpx;
   border: 1rpx solid #d7c8bf;
   border-radius: 10rpx;
   background: rgba(255, 252, 248, 0.84);

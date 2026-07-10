@@ -10,7 +10,10 @@ Page({
       totalWearCount: 0,
       wornItemCount: 0,
       averageCostPerWear: 0,
-      categoryCounts: []
+      categoryCounts: [],
+      mostWornItem: { name: '', wearCount: 0 },
+      longestUnwornItem: { item: { name: '' }, daysSinceWorn: 0 },
+      priceRange: { min: 0, max: 0 }
     }
   },
 

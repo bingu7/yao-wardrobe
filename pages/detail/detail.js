@@ -28,10 +28,17 @@ Page({
   },
 
   markWornToday() {
-    wardrobe.markWorn(this.data.id)
+    const result = wardrobe.markWorn(this.data.id)
+    if (!result.ok) {
+      wx.showToast({
+        title: result.message,
+        icon: 'none'
+      })
+      return
+    }
     this.loadItem()
     wx.showToast({
-      title: '已记录穿着',
+      title: result.message,
       icon: 'success'
     })
   },

@@ -20,6 +20,7 @@
         class="filter-pill {{activeOccasion === item ? 'active' : ''}}"
         data-occasion="{{item}}"
         bindtap="setOccasion"
+        aria-label="按{{item}}筛选"
       >
         {{item}}
       </button>
@@ -28,7 +29,7 @@
   </view>
 
   <view wx:if="{{filteredOutfits.length}}" class="section">
-    <view wx:for="{{filteredOutfits}}" wx:key="id" class="outfit-card card">
+    <view wx:for="{{filteredOutfits}}" wx:key="id" class="outfit-card card" aria-label="穿搭{{item.name}}">
       <view class="outfit-head">
         <view>
           <view class="outfit-name">{{item.name}}</view>
@@ -36,6 +37,7 @@
         </view>
         <button class="delete-mini" data-id="{{item.id}}" bindtap="deleteOutfit">删除</button>
       </view>
+      <view wx:if="{{item.invalidPieceCount}}" class="outfit-warning">有 {{item.invalidPieceCount}} 件衣物已失效，请编辑后重新选择</view>
       <view class="piece-grid">
         <view wx:for="{{item.pieces}}" wx:key="itemId" class="piece">
           <view class="piece-image">
@@ -54,8 +56,15 @@
   </view>
 
   <view wx:else class="empty card section">
-    <view class="empty-title">没有找到穿搭</view>
-    <view class="empty-text">换个关键词或场合，或者新建一套穿搭。</view>
-    <button class="primary-button empty-button" bindtap="goAdd">添加穿搭</button>
+    <view wx:if="{{isFiltering}}">
+      <view class="empty-title">没有匹配结果</view>
+      <view class="empty-text">换个关键词或场合试试。</view>
+      <button class="primary-button empty-button" bindtap="clearFilters">清除筛选</button>
+    </view>
+    <view wx:else>
+      <view class="empty-title">还没有穿搭</view>
+      <view class="empty-text">把常用组合保存下来，之后可以直接查看。</view>
+      <button class="primary-button empty-button" bindtap="goAdd">添加穿搭</button>
+    </view>
   </view>
 </view>

@@ -1,5 +1,5 @@
 const wardrobe = require('../../utils/wardrobe')
-const CATEGORY_VISIBLE_LIMIT = 2
+const CATEGORY_VISIBLE_LIMIT = 5
 
 Page({
   data: {
@@ -11,7 +11,8 @@ Page({
     categoryToggleText: '',
     canToggleCategories: false,
     wishlist: [],
-    filteredWishlist: []
+    filteredWishlist: [],
+    isFiltering: false
   },
 
   onLoad() {
@@ -67,7 +68,10 @@ Page({
       return matchKeyword && matchCategory
     })
 
-    this.setData({ filteredWishlist })
+    this.setData({
+      filteredWishlist,
+      isFiltering: Boolean(keyword || this.data.activeCategory !== '全部')
+    })
   },
 
   onSearch(event) {
@@ -91,6 +95,11 @@ Page({
     })
   },
 
+  clearFilters() {
+    this.setData({ keyword: '', activeCategory: '全部' })
+    this.applyFilters()
+  },
+
   goAdd() {
     wx.navigateTo({
       url: '/pages/wish-form/wish-form'
@@ -110,5 +119,15 @@ Page({
         }
       }
     })
+  },
+
+  purchaseWish(event) {
+    const result = wardrobe.purchaseWishlistItem(event.currentTarget.dataset.id)
+    if (!result.ok) {
+      wx.showToast({ title: result.message, icon: 'none' })
+      return
+    }
+    this.loadData()
+    wx.showToast({ title: '已加入衣橱', icon: 'success' })
   }
 })
