@@ -179,10 +179,6 @@
   background: rgba(255, 252, 248, 0.82);
 }
 
-.backup-card + .backup-card {
-  margin-top: 20rpx;
-}
-
 .health-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -321,14 +317,6 @@
   background: #f7eee9;
 }
 
-.import-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 12rpx;
-  margin-top: 20rpx;
-}
-
 .backup-button {
   display: flex;
   align-items: center;
@@ -363,40 +351,4 @@
   color: #9a8b83;
   font-size: 25rpx;
   text-align: center;
-}
-
-.modal-mask {
-  position: fixed;
-  inset: 0;
-  z-index: 20;
-  display: flex;
-  align-items: flex-end;
-  background: rgba(36, 31, 29, 0.35);
-}
-
-.import-panel {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 30rpx 24rpx 42rpx;
-  border-radius: 24rpx 24rpx 0 0;
-  background: #fffaf6;
-}
-
-.import-title {
-  font-size: 30rpx;
-  font-weight: 700;
-}
-
-.backup-input {
-  width: 100%;
-  height: 280rpx;
-  box-sizing: border-box;
-  margin-top: 20rpx;
-  padding: 20rpx;
-  border: 1rpx solid #e8ded6;
-  border-radius: 10rpx;
-  background: #ffffff;
-  color: #2a2421;
-  font-size: 24rpx;
-  line-height: 1.45;
 }

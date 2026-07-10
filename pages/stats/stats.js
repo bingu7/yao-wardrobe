@@ -24,16 +24,12 @@ Page({
       occasionCounts: [],
       mostWornItems: [],
       highestCostPerWearItems: []
-    },
-    showImportPanel: false,
-    backupText: ''
+    }
   },
 
   onShow() {
     this.loadStats()
   },
-
-  noop() {},
 
   setStatsTab(event) {
     this.setData({
@@ -68,71 +64,6 @@ Page({
           ...item,
           percent: Math.round((item.count / maxOccasionCount) * 100)
         }))
-      }
-    })
-  },
-
-  copyBackup() {
-    const data = JSON.stringify(wardrobe.exportData(), null, 2)
-    wx.setClipboardData({
-      data,
-      success: () => {
-        wx.showToast({ title: '备份已复制', icon: 'success' })
-      }
-    })
-  },
-
-  openImportPanel() {
-    this.setData({
-      showImportPanel: true,
-      backupText: ''
-    })
-  },
-
-  closeImportPanel() {
-    this.setData({
-      showImportPanel: false,
-      backupText: ''
-    })
-  },
-
-  onBackupInput(event) {
-    this.setData({
-      backupText: event.detail.value
-    })
-  },
-
-  confirmImport() {
-    const text = this.data.backupText.trim()
-    if (!text) {
-      wx.showToast({ title: '请粘贴备份内容', icon: 'none' })
-      return
-    }
-
-    let data = null
-    try {
-      data = JSON.parse(text)
-    } catch (error) {
-      wx.showToast({ title: '备份不是有效 JSON', icon: 'none' })
-      return
-    }
-
-    wx.showModal({
-      title: '恢复备份',
-      content: '恢复会覆盖当前衣橱、穿搭、愿望和标签数据。确定继续吗？',
-      confirmColor: '#7b3b32',
-      success: (res) => {
-        if (!res.confirm) {
-          return
-        }
-        const result = wardrobe.importData(data)
-        if (!result.ok) {
-          wx.showToast({ title: result.message, icon: 'none' })
-          return
-        }
-        wx.showToast({ title: '已恢复备份', icon: 'success' })
-        this.closeImportPanel()
-        this.loadStats()
       }
     })
   }

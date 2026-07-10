@@ -161,25 +161,5 @@
         <view class="backup-button primary" bindtap="openSettings">打开设置</view>
       </view>
     </view>
-
-    <view class="backup-card card">
-      <view class="block-title">数据备份</view>
-      <view class="backup-text">复制备份可保存到备忘录；恢复时粘贴备份内容即可。</view>
-      <view class="backup-actions">
-        <view class="backup-button primary" bindtap="copyBackup">复制备份</view>
-        <view class="backup-button" bindtap="openImportPanel">恢复备份</view>
-      </view>
-    </view>
-  </view>
-
-  <view wx:if="{{showImportPanel}}" class="modal-mask" bindtap="closeImportPanel">
-    <view class="import-panel" catchtap="noop">
-      <view class="import-title">恢复备份</view>
-      <textarea class="backup-input" placeholder="粘贴 JSON 备份内容" value="{{backupText}}" bindinput="onBackupInput" maxlength="-1"></textarea>
-      <view class="import-actions">
-        <view class="backup-button" bindtap="closeImportPanel">取消</view>
-        <view class="backup-button primary" bindtap="confirmImport">恢复</view>
-      </view>
-    </view>
   </view>
 </view>
