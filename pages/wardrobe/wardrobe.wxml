@@ -55,8 +55,8 @@
 
   <view class="insight-section" wx:if="{{insights.staleItems.length}}">
     <view class="section-head">
-      <view class="section-title">很久没穿</view>
-      <view class="section-note">超过 {{idleAlertDays}} 天或未记录会提示</view>
+      <view class="section-title">久未穿着</view>
+      <view class="section-note">超过 {{idleAlertDays}} 天未穿，或暂未记录穿着</view>
     </view>
     <scroll-view class="insight-scroll" scroll-x>
       <view
@@ -150,7 +150,6 @@
         <image wx:if="{{item.imageUrl}}" class="item-image" src="{{item.imageUrl}}" mode="aspectFill" />
         <view wx:else class="image-placeholder">{{item.category}}</view>
         <view wx:if="{{batchMode}}" class="select-mark {{item.selected ? 'active' : ''}}">{{item.selected ? '✓' : ''}}</view>
-        <view wx:if="{{item.statusHint}}" class="status-hint">{{item.statusHint}}</view>
       </view>
       <view class="item-body">
         <view class="item-name">{{item.name}}</view>

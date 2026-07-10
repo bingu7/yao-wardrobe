@@ -892,21 +892,18 @@ function getIdleStatus(item, idleDays) {
   if (Number(normalized.wearCount) === 0) {
     return {
       isIdle: true,
-      label: '可能闲置',
-      text: '还没记录穿着'
+      text: '暂未记录穿着'
     }
   }
   const daysSince = getDaysSince(normalized.lastWornDate)
   if (daysSince !== null && daysSince >= days) {
     return {
       isIdle: true,
-      label: '可能闲置',
-      text: `${daysSince} 天没穿`
+      text: `已 ${daysSince} 天未穿`
     }
   }
   return {
     isIdle: false,
-    label: '',
     text: daysSince === null ? '未记录' : `${daysSince} 天前`
   }
 }
@@ -917,7 +914,6 @@ function enrichItemForDisplay(item) {
   return {
     ...normalized,
     idleStatus,
-    statusHint: idleStatus.isIdle ? idleStatus.label : '',
     idleText: idleStatus.text
   }
 }
