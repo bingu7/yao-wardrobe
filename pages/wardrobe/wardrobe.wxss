@@ -247,3 +247,289 @@
 .empty-button {
   margin-top: 28rpx;
 }
+
+/* 穿搭日历、衣橱洞察与批量管理模块 */
+.calendar-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  margin-top: 24rpx;
+  padding: 24rpx;
+  background: rgba(255, 252, 248, 0.82);
+}
+
+.calendar-title,
+.section-title,
+.batch-title,
+.panel-title {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.calendar-subtitle {
+  margin-top: 8rpx;
+  color: #8b7d75;
+  font-size: 23rpx;
+  line-height: 1.4;
+}
+
+.calendar-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 92rpx;
+  height: 54rpx;
+  border-radius: 999rpx;
+  background: #241f1d;
+  color: #ffffff;
+  font-size: 23rpx;
+}
+
+.insight-section {
+  margin-top: 26rpx;
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18rpx;
+  margin-bottom: 14rpx;
+}
+
+.section-note {
+  flex: 0 0 auto;
+  color: #9a8b83;
+  font-size: 22rpx;
+}
+
+.insight-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.mini-piece {
+  display: inline-block;
+  width: 152rpx;
+  margin-right: 16rpx;
+  vertical-align: top;
+}
+
+.mini-image {
+  width: 152rpx;
+  height: 176rpx;
+  border-radius: 10rpx;
+  background: #efe3dc;
+  overflow: hidden;
+}
+
+.mini-image image,
+.mini-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.mini-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9a8b83;
+  font-size: 22rpx;
+  text-align: center;
+}
+
+.mini-name,
+.mini-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-name {
+  margin-top: 10rpx;
+  color: #2a2421;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.mini-meta {
+  margin-top: 4rpx;
+  color: #9a8b83;
+  font-size: 21rpx;
+}
+
+.batch-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12rpx;
+  margin-top: 18rpx;
+}
+
+.batch-button,
+.batch-quick button,
+.batch-actions button,
+.panel-grid button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: auto;
+  border: 1rpx solid #daccc4;
+  border-radius: 999rpx;
+  background: #fffaf6;
+  color: #5f514a;
+  line-height: 1;
+  margin: 0;
+}
+
+.batch-button {
+  min-width: 128rpx;
+  height: 48rpx;
+  padding: 0 12rpx;
+  font-size: 22rpx;
+}
+
+.batch-toolbar {
+  margin-top: 16rpx;
+  padding: 16rpx 18rpx;
+  background: rgba(255, 252, 248, 0.86);
+}
+
+.batch-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.selected-count {
+  color: #8b3f37;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.batch-quick,
+.batch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 10rpx;
+}
+
+.batch-quick {
+  margin-top: 14rpx;
+}
+
+.batch-actions {
+  margin-top: 10rpx;
+}
+
+.batch-quick button,
+.batch-actions button {
+  min-width: 92rpx;
+  height: 46rpx;
+  padding: 0 18rpx;
+  font-size: 22rpx;
+}
+
+.batch-actions button.danger {
+  border-color: #c05f55;
+  color: #c05f55;
+}
+
+.item-card.selectable {
+  border-color: #e8ded6;
+  border-radius: 12rpx;
+  padding: 6rpx;
+  background: rgba(255, 252, 248, 0.72);
+}
+
+.item-card.selected {
+  border-color: #241f1d;
+  background: #f0e5df;
+}
+
+.select-mark,
+.status-hint {
+  position: absolute;
+  z-index: 2;
+}
+
+.select-mark {
+  top: 10rpx;
+  right: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38rpx;
+  height: 38rpx;
+  border: 2rpx solid #ffffff;
+  border-radius: 999rpx;
+  background: rgba(36, 31, 29, 0.32);
+  color: #ffffff;
+  font-size: 22rpx;
+}
+
+.select-mark.active {
+  background: #241f1d;
+}
+
+.status-hint {
+  left: 10rpx;
+  bottom: 10rpx;
+  max-width: calc(100% - 20rpx);
+  padding: 8rpx 12rpx;
+  border-radius: 999rpx;
+  background: rgba(139, 63, 55, 0.92);
+  color: #ffffff;
+  font-size: 20rpx;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(36, 31, 29, 0.35);
+}
+
+.batch-panel {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 28rpx 24rpx 40rpx;
+  border-radius: 24rpx 24rpx 0 0;
+  background: #fffaf6;
+}
+
+.panel-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 12rpx;
+  margin-top: 20rpx;
+}
+
+.panel-grid button {
+  min-width: 104rpx;
+  max-width: 220rpx;
+  height: 50rpx;
+  padding: 0 20rpx;
+  font-size: 23rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.batch-button::after,
+.batch-quick button::after,
+.batch-actions button::after,
+.panel-grid button::after {
+  border: 0;
+}
