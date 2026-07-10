@@ -41,6 +41,12 @@ Page({
     })
   },
 
+  openSettings() {
+    wx.navigateTo({
+      url: '/pages/settings/settings'
+    })
+  },
+
   loadStats() {
     const items = wardrobe.getItems()
     const summary = wardrobe.summarize(items)

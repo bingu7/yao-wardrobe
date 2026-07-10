@@ -1,0 +1,57 @@
+<view class="page">
+  <view class="eyebrow">SETTINGS</view>
+  <view class="title">设置与关于</view>
+  <view class="subtitle">上线前的数据说明、备份恢复和隐私入口都放在这里。</view>
+
+  <view class="section card">
+    <view class="block-title">数据存储说明</view>
+    <view class="paragraph">当前版本不使用服务器账号体系。衣物、穿搭、愿望、购买价格、备注和穿着记录主要保存在本机微信小程序缓存中。</view>
+    <view class="notice">换手机、清理微信缓存或卸载小程序可能导致本地数据丢失。建议定期复制备份。</view>
+  </view>
+
+  <view class="section card">
+    <view class="block-title">数据备份</view>
+    <view class="paragraph">复制备份后可以保存到备忘录、网盘或自己的文档里。恢复时粘贴完整 JSON 内容即可。</view>
+    <view class="action-row">
+      <view class="action primary" bindtap="copyBackup">复制备份</view>
+      <view class="action" bindtap="openImportPanel">恢复备份</view>
+    </view>
+  </view>
+
+  <view class="section card">
+    <view class="block-title">隐私与协议</view>
+    <view class="link-row" bindtap="openPrivacy">
+      <text>隐私政策</text>
+      <text class="chevron">›</text>
+    </view>
+    <view class="link-row" bindtap="openAgreement">
+      <text>用户协议</text>
+      <text class="chevron">›</text>
+    </view>
+  </view>
+
+  <view class="section card">
+    <view class="block-title">备案信息</view>
+    <view class="paragraph">备案号：待备案后填写</view>
+    <view class="hint">正式发布前，在微信公众平台完成小程序备案后，将备案号补到这里。</view>
+  </view>
+
+  <view class="danger-section card">
+    <view>
+      <view class="block-title">清空本地数据</view>
+      <view class="paragraph">用于重新开始使用。清空前请确认已经复制备份。</view>
+    </view>
+    <view class="danger-action" bindtap="clearAllData">清空</view>
+  </view>
+
+  <view wx:if="{{showImportPanel}}" class="modal-mask" bindtap="closeImportPanel">
+    <view class="import-panel" catchtap="noop">
+      <view class="import-title">恢复备份</view>
+      <textarea class="backup-input" placeholder="粘贴 JSON 备份内容" value="{{backupText}}" bindinput="onBackupInput" maxlength="-1"></textarea>
+      <view class="action-row">
+        <view class="action" bindtap="closeImportPanel">取消</view>
+        <view class="action primary" bindtap="confirmImport">恢复</view>
+      </view>
+    </view>
+  </view>
+</view>

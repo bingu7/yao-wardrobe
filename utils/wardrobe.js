@@ -21,42 +21,7 @@ const outfitSlots = [
   { key: 'accessoryId', label: '帽子/发饰', categories: ['帽子/发饰', '配饰'] }
 ]
 
-const starterItems = [
-  {
-    id: 'sample_001',
-    name: '碎花吊带裙',
-    category: '连衣裙',
-    price: 299,
-    imageUrl: '',
-    color: '粉色',
-    seasons: ['春', '夏'],
-    occasions: ['旅行', '拍照'],
-    purchaseDate: '2026-06-18',
-    status: '常穿',
-    wearCount: 1,
-    lastWornDate: '2026-07-08',
-    note: '适合度假和拍照',
-    createdAt: '2026-07-08T12:00:00+08:00',
-    updatedAt: '2026-07-08T12:00:00+08:00'
-  },
-  {
-    id: 'sample_002',
-    name: '白色衬衫',
-    category: '上衣',
-    price: 159,
-    imageUrl: '',
-    color: '白色',
-    seasons: ['春', '秋'],
-    occasions: ['通勤', '正式'],
-        purchaseDate: '2026-05-02',
-        status: '偶尔穿',
-        wearCount: 0,
-        lastWornDate: '',
-        note: '通勤和拍证件照都能用',
-        createdAt: '2026-07-08T12:00:00+08:00',
-        updatedAt: '2026-07-08T12:00:00+08:00'
-      }
-    ]
+const starterItems = []
 
     // 旧数据迁移用，新穿搭不再使用固定槽位
     const legacySlotMap = [
@@ -67,20 +32,7 @@ const starterItems = [
       { key: 'accessoryId', category: '配饰' }
     ]
 
-    const starterOutfits = [
-      {
-        id: 'outfit_sample_001',
-        name: '周末拍照穿搭',
-        pieces: [
-          { category: '上衣', itemId: 'sample_002' },
-          { category: '连衣裙', itemId: 'sample_001' }
-        ],
-        occasion: '拍照',
-        note: '清爽一点，适合出门拍照',
-        createdAt: '2026-07-08T12:00:00+08:00',
-        updatedAt: '2026-07-08T12:00:00+08:00'
-      }
-    ]
+const starterOutfits = []
 
 function getItems() {
   const saved = wx.getStorageSync(STORAGE_KEY)
@@ -831,6 +783,23 @@ function importData(data) {
   return { ok: true }
 }
 
+function clearAllData() {
+  ;[...getItems(), ...getWishlist()].forEach((item) => {
+    if (item && item.imageUrl) {
+      removeImageFile(item.imageUrl)
+    }
+  })
+  wx.setStorageSync(STORAGE_KEY, [])
+  wx.setStorageSync(OUTFIT_STORAGE_KEY, [])
+  wx.setStorageSync(WISHLIST_STORAGE_KEY, [])
+  wx.setStorageSync(WEAR_LOG_STORAGE_KEY, {})
+  wx.setStorageSync(CATEGORY_STORAGE_KEY, defaultCategories)
+  wx.setStorageSync(CATEGORY_MANAGED_KEY, true)
+  wx.setStorageSync(OCCASION_STORAGE_KEY, defaultOccasions)
+  wx.setStorageSync(OCCASION_MANAGED_KEY, true)
+  return { ok: true }
+}
+
 function getIdleStatus(item, idleDays) {
   const days = idleDays || IDLE_ALERT_DAYS
   const normalized = normalizeItem(item)
@@ -1031,6 +1000,7 @@ module.exports = {
   batchDeleteItems,
   exportData,
   importData,
+  clearAllData,
   getIdleStatus,
   enrichItemForDisplay,
   getHomeInsights,

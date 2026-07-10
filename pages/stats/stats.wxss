@@ -159,6 +159,10 @@
   background: rgba(255, 252, 248, 0.82);
 }
 
+.backup-card + .backup-card {
+  margin-top: 20rpx;
+}
+
 .health-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

@@ -1,0 +1,44 @@
+.page {
+  min-height: 100vh;
+  padding: 36rpx 32rpx 80rpx;
+  box-sizing: border-box;
+  background: #f8f5f1;
+  color: #2f2926;
+}
+
+.title {
+  font-size: 46rpx;
+  line-height: 1.15;
+  font-weight: 800;
+}
+
+.subtitle {
+  margin-top: 14rpx;
+  color: #9a8b83;
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+
+.card {
+  background: #fffdfa;
+  border: 1rpx solid #eadfd7;
+  border-radius: 8rpx;
+  box-sizing: border-box;
+}
+
+.section {
+  margin-top: 24rpx;
+  padding: 28rpx;
+}
+
+.block-title {
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.paragraph {
+  margin-top: 14rpx;
+  color: #7d6d65;
+  font-size: 26rpx;
+  line-height: 1.6;
+}

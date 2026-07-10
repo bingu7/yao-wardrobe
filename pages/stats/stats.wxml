@@ -137,6 +137,14 @@
   </view>
 
   <view wx:if="{{activeStatsTab === 'data'}}" class="tab-panel">
+    <view class="backup-card card section">
+      <view class="block-title">设置与关于</view>
+      <view class="backup-text">查看数据存储说明、隐私政策、用户协议、备案信息和清空本地数据。</view>
+      <view class="backup-actions">
+        <view class="backup-button primary" bindtap="openSettings">打开设置</view>
+      </view>
+    </view>
+
     <view class="backup-card card">
       <view class="block-title">数据备份</view>
       <view class="backup-text">复制备份可保存到备忘录；恢复时粘贴备份内容即可。</view>
