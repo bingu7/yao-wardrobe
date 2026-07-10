@@ -346,11 +346,11 @@ function saveItems(items) {
 
 /** 将临时图片文件保存到持久化存储，返回持久化路径 */
 function persistImage(tempFilePath) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     wx.saveFile({
       tempFilePath,
       success: (res) => resolve(res.savedFilePath),
-      fail: () => resolve(tempFilePath) // 保底：返回临时路径
+      fail: (error) => reject(error)
     })
   })
 }
@@ -499,13 +499,17 @@ function removeItemFromWearLogs(itemId) {
 }
 
 function markWorn(id, dateText) {
-  const date = dateText || formatLocalDate(new Date())
+  const date = dateText ? formatLocalDate(dateText) : formatLocalDate(new Date())
   const ids = getWearLog(date)
   if (ids.includes(id)) {
-    return { ok: true, date, alreadyRecorded: true }
+    return { ok: false, date, alreadyRecorded: true, message: '今天已经记录过了' }
   }
   const result = setWearLog(date, [...ids, id])
-  return { ...result, alreadyRecorded: false }
+  return {
+    ...result,
+    alreadyRecorded: false,
+    message: result.ok ? '已记录穿着' : result.message
+  }
 }
 
 function hydrateWearLog(dateText, items) {
@@ -546,11 +550,12 @@ function getCostPerWear(item) {
 
 function getOutfits() {
   const saved = wx.getStorageSync(OUTFIT_STORAGE_KEY)
+  let outfits
   if (Array.isArray(saved)) {
     // 自动迁移旧数据：把 topId/bottomId 等格式转为 pieces 数组
     const needsMigration = saved.some((o) => !Array.isArray(o.pieces))
     if (needsMigration) {
-      const migrated = saved.map((o) => {
+      outfits = saved.map((o) => {
         if (Array.isArray(o.pieces)) return o
         const pieces = []
         for (const slot of legacySlotMap) {
@@ -561,13 +566,30 @@ function getOutfits() {
         const { topId, bottomId, shoesId, bagId, accessoryId, ...rest } = o
         return { ...rest, pieces }
       })
-      saveOutfits(migrated)
-      return migrated
+    } else {
+      outfits = saved
     }
-    return saved
+  } else {
+    outfits = starterOutfits
   }
-  wx.setStorageSync(OUTFIT_STORAGE_KEY, starterOutfits)
-  return starterOutfits
+  const itemIds = new Set(getItems().map((item) => item.id))
+  let changed = !Array.isArray(saved)
+  const normalized = outfits.map((outfit) => {
+    const seen = new Set()
+    const pieces = (Array.isArray(outfit.pieces) ? outfit.pieces : []).filter((piece) => {
+      if (!piece.itemId || !itemIds.has(piece.itemId) || seen.has(piece.itemId)) {
+        changed = true
+        return false
+      }
+      seen.add(piece.itemId)
+      return true
+    })
+    return pieces.length === outfit.pieces.length ? outfit : { ...outfit, pieces }
+  })
+  if (changed) {
+    saveOutfits(normalized)
+  }
+  return normalized
 }
 
 function saveOutfits(outfits) {
@@ -587,10 +609,19 @@ function copyOutfit(id) {
 
 function upsertOutfit(outfit) {
   const now = new Date().toISOString()
+  const seen = new Set()
+  const pieces = (Array.isArray(outfit.pieces) ? outfit.pieces : []).filter((piece) => {
+    if (!piece.itemId || seen.has(piece.itemId)) {
+      return false
+    }
+    seen.add(piece.itemId)
+    return true
+  })
+  const nextOutfit = { ...outfit, pieces }
   const outfits = getOutfits()
   if (outfit.id) {
     saveOutfits(outfits.map((current) => (
-      current.id === outfit.id ? { ...current, ...outfit, updatedAt: now } : current
+      current.id === outfit.id ? { ...current, ...nextOutfit, updatedAt: now } : current
     )))
     return outfit.id
   }
@@ -598,7 +629,7 @@ function upsertOutfit(outfit) {
   const id = createUniqueId('outfit', outfits.map((current) => current.id))
   saveOutfits([
     {
-      ...outfit,
+        ...nextOutfit,
       id,
       createdAt: now,
       updatedAt: now
@@ -633,7 +664,18 @@ function hydrateOutfit(outfit, items) {
 
 function getWishlist() {
   const saved = wx.getStorageSync(WISHLIST_STORAGE_KEY)
-  return Array.isArray(saved) ? saved : []
+  if (!Array.isArray(saved)) return []
+  const itemIds = new Set(getItems().map((item) => item.id))
+  let changed = false
+  const wishlist = saved.map((item) => {
+    if (item.matchItemId && !itemIds.has(item.matchItemId)) {
+      changed = true
+      return { ...item, matchItemId: '' }
+    }
+    return item
+  })
+  if (changed) saveWishlist(wishlist)
+  return wishlist
 }
 
 function saveWishlist(list) {
@@ -709,6 +751,27 @@ function convertWishlistToItem(id) {
   return { ok: true, itemId }
 }
 
+function purchaseWishlistItem(id) {
+  const wish = getWishlistItem(id)
+  if (!wish) {
+    return { ok: false, message: '愿望不存在' }
+  }
+  const itemId = upsertItem({
+    name: wish.name || '未命名衣物',
+    category: wish.category || '其他',
+    price: wish.expectedPrice === '' || wish.expectedPrice === undefined ? '' : Number(wish.expectedPrice) || 0,
+    imageUrl: wish.imageUrl || '',
+    color: '',
+    seasons: [],
+    occasions: [],
+    purchaseDate: formatLocalDate(new Date()),
+    status: '偶尔穿',
+    note: wish.note || ''
+  })
+  saveWishlist(getWishlist().filter((item) => item.id !== id))
+  return { ok: true, itemId }
+}
+
 function batchUpdateCategory(ids, category) {
   const itemIds = normalizeIdList(ids)
   const value = String(category || '').trim()
@@ -748,11 +811,11 @@ function batchDeleteItems(ids) {
 
 function exportData() {
   return {
-    version: 1,
+    version: 3,
     exportedAt: new Date().toISOString(),
-    items: getItems(),
+    items: getItems().map((item) => ({ ...item, imageUrl: '' })),
     outfits: getOutfits(),
-    wishlist: getWishlist(),
+    wishlist: getWishlist().map((item) => ({ ...item, imageUrl: '' })),
     wearLogs: getWearLogs(),
     categories: getCustomCategories(),
     occasions: getCustomOccasions()
@@ -763,24 +826,47 @@ function toArray(value) {
   return Array.isArray(value) ? value : []
 }
 
-function importData(data) {
-  if (!data || typeof data !== 'object') {
-    return { ok: false, message: '备份内容格式不正确' }
+function importData(input) {
+  let backup = input
+  if (typeof input === 'string') {
+    try {
+      backup = JSON.parse(input)
+    } catch (error) {
+      return { ok: false, message: '备份内容不是有效 JSON' }
+    }
   }
-  const backupCategories = toArray(data.categories)
-  const backupOccasions = toArray(data.occasions)
-  const categories = uniqCategories([...(backupCategories.length ? backupCategories : defaultCategories), '其他'])
-  const occasions = uniqCategories(backupOccasions.length ? backupOccasions : defaultOccasions)
+  if (!backup || !Array.isArray(backup.items) || !Array.isArray(backup.outfits) || !Array.isArray(backup.wishlist)) {
+    return { ok: false, message: '备份缺少必要数据' }
+  }
+  const mergeRecords = (local, incoming, normalize) => {
+    const merged = new Map(local.map((item) => [item.id, item]))
+    incoming.forEach((item) => {
+      const next = normalize ? normalize(item) : item
+      const previous = merged.get(next.id) || {}
+      merged.set(next.id, { ...previous, ...next, imageUrl: previous.imageUrl || next.imageUrl || '' })
+    })
+    return Array.from(merged.values())
+  }
+  const localCategories = toArray(wx.getStorageSync(CATEGORY_STORAGE_KEY))
+  const localOccasions = toArray(wx.getStorageSync(OCCASION_STORAGE_KEY))
+  const categories = uniqCategories([...localCategories, ...toArray(backup.categories), '其他'])
+  const occasions = uniqCategories([...localOccasions, ...toArray(backup.occasions)])
+  const mergedWearLogs = { ...getWearLogs() }
+  if (backup.wearLogs && typeof backup.wearLogs === 'object') {
+    Object.keys(backup.wearLogs).forEach((date) => {
+      mergedWearLogs[date] = normalizeIdList([...(mergedWearLogs[date] || []), ...(backup.wearLogs[date] || [])])
+    })
+  }
 
-  wx.setStorageSync(STORAGE_KEY, toArray(data.items).map(normalizeItem))
-  wx.setStorageSync(OUTFIT_STORAGE_KEY, toArray(data.outfits))
-  wx.setStorageSync(WISHLIST_STORAGE_KEY, toArray(data.wishlist))
-  wx.setStorageSync(WEAR_LOG_STORAGE_KEY, data.wearLogs && typeof data.wearLogs === 'object' ? data.wearLogs : {})
+  wx.setStorageSync(STORAGE_KEY, mergeRecords(getItems(), backup.items, normalizeItem))
+  wx.setStorageSync(OUTFIT_STORAGE_KEY, mergeRecords(getOutfits(), backup.outfits))
+  wx.setStorageSync(WISHLIST_STORAGE_KEY, mergeRecords(getWishlist(), backup.wishlist))
+  wx.setStorageSync(WEAR_LOG_STORAGE_KEY, mergedWearLogs)
   wx.setStorageSync(CATEGORY_STORAGE_KEY, categories)
   wx.setStorageSync(CATEGORY_MANAGED_KEY, true)
   wx.setStorageSync(OCCASION_STORAGE_KEY, occasions)
   wx.setStorageSync(OCCASION_MANAGED_KEY, true)
-  return { ok: true }
+  return { ok: true, count: backup.items.length, merged: true }
 }
 
 function clearAllData() {
@@ -892,6 +978,19 @@ function summarize(items) {
   })).sort((a, b) => b.count - a.count)
   const totalWearCount = normalizedItems.reduce((sum, item) => sum + (Number(item.wearCount) || 0), 0)
   const wornItems = normalizedItems.filter((item) => Number(item.wearCount) > 0)
+  const pricedWornItems = wornItems.filter((item) => Number(item.price) > 0)
+  const pricedWearCount = pricedWornItems.reduce((sum, item) => sum + Number(item.wearCount), 0)
+  const wornItemsPrice = pricedWornItems.reduce((sum, item) => sum + Number(item.price), 0)
+  const mostWornItem = wornItems.reduce((current, item) => (
+    !current || Number(item.wearCount) > Number(current.wearCount) ? item : current
+  ), null)
+  const nowTime = Date.now()
+  const longestUnwornItem = normalizedItems.reduce((current, item) => {
+    const lastDate = item.lastWornDate || item.purchaseDate || item.createdAt || ''
+    const daysSinceWorn = lastDate ? Math.max(0, Math.floor((nowTime - new Date(lastDate).getTime()) / 86400000)) : 0
+    return !current || daysSinceWorn > current.daysSinceWorn ? { item, daysSinceWorn } : current
+  }, null)
+  const priceValues = pricedItems.map((item) => Number(item.price))
   const today = new Date()
   const getIdleDays = (dateText) => {
     if (!dateText) return null
@@ -935,14 +1034,19 @@ function summarize(items) {
     idleOver90Count,
     totalWearCount,
     wornItemCount: wornItems.length,
-    averageCostPerWear: wornItems.length
-      ? Number((wornItems.reduce((sum, item) => sum + getCostPerWear(item), 0) / wornItems.length).toFixed(2))
+    averageCostPerWear: pricedWearCount
+      ? Number((wornItemsPrice / pricedWearCount).toFixed(2))
       : 0,
     categoryCounts,
     seasonCounts,
     occasionCounts,
     mostWornItems,
-    highestCostPerWearItems
+    highestCostPerWearItems,
+    mostWornItem: mostWornItem || { name: '', wearCount: 0 },
+    longestUnwornItem: longestUnwornItem || { item: { name: '' }, daysSinceWorn: 0 },
+    priceRange: priceValues.length
+      ? { min: Math.min(...priceValues), max: Math.max(...priceValues) }
+      : { min: 0, max: 0 }
   }
 }
 
@@ -995,6 +1099,7 @@ module.exports = {
   upsertWishlistItem,
   deleteWishlistItem,
   convertWishlistToItem,
+  purchaseWishlistItem,
   batchUpdateCategory,
   batchAddOccasions,
   batchDeleteItems,

@@ -1,5 +1,5 @@
 const wardrobe = require('../../utils/wardrobe')
-const CATEGORY_VISIBLE_LIMIT = 2
+const CATEGORY_VISIBLE_LIMIT = 5
 
 Page({
   data: {
@@ -12,6 +12,7 @@ Page({
     keyword: '',
     items: [],
     filteredItems: [],
+    isFiltering: false,
     insights: {
       currentSeason: '',
       recentItems: [],
@@ -92,7 +93,10 @@ Page({
       ...item,
       selected: this.data.selectedItemIds.includes(item.id)
     }))
-    this.setData({ filteredItems })
+    this.setData({
+      filteredItems,
+      isFiltering: Boolean(keyword || this.data.activeCategory !== '全部')
+    })
   },
 
   onSearch(event) {
@@ -103,6 +107,134 @@ Page({
   setCategory(event) {
     this.setData({ activeCategory: event.currentTarget.dataset.category })
     this.applyFilters()
+  },
+
+  clearFilters() {
+    this.setData({ keyword: '', activeCategory: '全部' })
+    this.applyFilters()
+  },
+
+  exportBackup() {
+    const fileName = `wardrobe-backup-${wardrobe.formatLocalDate(new Date())}.json`
+    const userDataPath = wx.env && wx.env.USER_DATA_PATH
+    if (!userDataPath) {
+      wx.showToast({ title: '当前环境不支持文件导出', icon: 'none' })
+      return
+    }
+    const filePath = `${userDataPath}/${fileName}`
+    const backupText = JSON.stringify(wardrobe.exportData(), null, 2)
+    wx.showLoading({ title: '正在生成备份', mask: true })
+    wx.getFileSystemManager().writeFile({
+      filePath,
+      data: backupText,
+      encoding: 'utf8',
+      success: () => {
+        wx.hideLoading()
+        this.shareBackupFile(filePath, fileName, backupText)
+      },
+      fail: () => {
+        wx.hideLoading()
+        wx.showToast({ title: '生成备份文件失败', icon: 'none' })
+      }
+    })
+  },
+
+  shareBackupFile(filePath, fileName, backupText) {
+    const copyBackupText = () => {
+      wx.setClipboardData({
+        data: backupText,
+        success: () => wx.showModal({
+          title: '备份内容已复制',
+          content: '请粘贴到微信文件传输助手或记事本中保存。以后可从剪贴板导入。',
+          showCancel: false
+        }),
+        fail: () => wx.showModal({
+          title: '备份文件已生成',
+          content: `文件路径：${filePath}`,
+          showCancel: false
+        })
+      })
+    }
+    if (typeof wx.shareFileMessage !== 'function') {
+      copyBackupText()
+      return
+    }
+    wx.shareFileMessage({
+      filePath,
+      fileName,
+      success: () => wx.showToast({ title: '请选择发送位置保存', icon: 'success' }),
+      fail: (error) => {
+        if (!(error && error.errMsg && error.errMsg.includes('cancel'))) {
+          copyBackupText()
+        }
+      }
+    })
+  },
+
+  importBackup() {
+    if (typeof wx.chooseMessageFile !== 'function') {
+      this.importBackupFromClipboard()
+      return
+    }
+    wx.chooseMessageFile({
+      count: 1,
+      type: 'file',
+      extension: ['json'],
+      success: (res) => {
+        const file = res.tempFiles && res.tempFiles[0]
+        if (!file || !file.path) {
+          wx.showToast({ title: '没有选择备份文件', icon: 'none' })
+          return
+        }
+        wx.getFileSystemManager().readFile({
+          filePath: file.path,
+          encoding: 'utf8',
+          success: (content) => this.confirmBackupImport(content.data),
+          fail: () => wx.showToast({ title: '读取备份文件失败', icon: 'none' })
+        })
+      },
+      fail: (error) => {
+        if (!(error && error.errMsg && error.errMsg.includes('cancel'))) {
+          this.importBackupFromClipboard()
+        }
+      }
+    })
+  },
+
+  importBackupFromClipboard() {
+    wx.getClipboardData({
+      success: (res) => this.confirmBackupImport(res.data),
+      fail: () => wx.showToast({ title: '读取备份失败', icon: 'none' })
+    })
+  },
+
+  confirmBackupImport(rawData) {
+    let backup
+    try {
+      backup = typeof rawData === 'string' ? JSON.parse(rawData) : rawData
+    } catch (error) {
+      wx.showToast({ title: '备份内容不是有效 JSON', icon: 'none' })
+      return
+    }
+    if (!backup || !Array.isArray(backup.items) || !Array.isArray(backup.outfits) || !Array.isArray(backup.wishlist)) {
+      wx.showToast({ title: '备份缺少必要数据', icon: 'none' })
+      return
+    }
+    wx.showModal({
+      title: '导入备份',
+      content: `将恢复 ${backup.items.length} 件衣物、${backup.outfits.length} 套穿搭和 ${backup.wishlist.length} 个愿望，确定继续吗？`,
+      confirmColor: '#7b3b32',
+      success: (modal) => {
+        if (!modal.confirm) return
+        const result = wardrobe.importData(backup)
+        if (!result.ok) {
+          wx.showToast({ title: result.message, icon: 'none' })
+          return
+        }
+        this.loadItems()
+        wx.showToast({ title: '导入成功', icon: 'success' })
+      }
+    })
   },
 
   toggleCategories() {

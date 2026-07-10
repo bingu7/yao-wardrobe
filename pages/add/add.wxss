@@ -177,9 +177,9 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: 64rpx;
+  width: 88rpx;
   min-width: 0;
-  height: 40rpx;
+  height: 72rpx;
   border-radius: 8rpx;
   background: #7b3b32;
   color: #ffffff;
@@ -240,6 +240,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12rpx;
+  margin-bottom: 18rpx;
 }
 
 .chip {
@@ -281,7 +282,7 @@
   border-radius: 8rpx;
   font-size: 24rpx;
   line-height: 1;
-  margin: 12rpx 0 0;
+  margin: 0;
   padding: 0;
 }
 
@@ -295,6 +296,7 @@
   border: 1rpx dashed #d9c8bd;
   background: #fffaf6;
   color: #5f514a;
+  margin-top: 12rpx;
 }
 
 .occasion-toggle::after,
@@ -338,9 +340,8 @@
 }
 
 .panel-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12rpx;
   width: 100%;
 }
@@ -367,12 +368,10 @@
 
 .panel-action,
 .panel-close {
-  width: auto;
-  min-width: 112rpx;
-  height: 48rpx;
-  border-radius: 999rpx;
-  font-size: 22rpx;
-  padding: 0 20rpx;
+  width: 100%;
+  height: 72rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
 }
 
 .panel-action {
@@ -387,10 +386,9 @@
 }
 
 .category-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 12rpx;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14rpx;
   margin-top: 26rpx;
 }
 
@@ -399,18 +397,15 @@
   position: relative;
   align-items: center;
   justify-content: center;
-  flex: 0 0 auto;
-  width: auto;
-  min-width: 104rpx;
-  max-width: 220rpx;
-  height: 50rpx;
+  width: 100%;
+  height: 76rpx;
   border: 1rpx solid #eadfd7;
-  border-radius: 999rpx;
+  border-radius: 8rpx;
   background: #ffffff;
   color: #5f514a;
-  font-size: 23rpx;
+  font-size: 24rpx;
   line-height: 1;
-  padding: 0 20rpx;
+  padding: 0 10rpx;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -469,7 +464,7 @@
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  height: 44rpx;
+  height: 72rpx;
   border-radius: 8rpx;
   border: 1rpx solid #eadfd7;
   background: #fffaf6;
@@ -486,15 +481,15 @@
 .delete-x {
   grid-column: 2;
   grid-row: 1;
-  width: 48rpx;
-  min-width: 48rpx;
-  max-width: 48rpx;
-  height: 48rpx;
+  width: 72rpx;
+  min-width: 72rpx;
+  max-width: 72rpx;
+  height: 72rpx;
   border-radius: 50%;
   background: #7b3b32;
   color: #ffffff;
   font-size: 28rpx;
-  line-height: 48rpx;
+  line-height: 72rpx;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -520,9 +515,8 @@
 }
 
 .quick-date-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12rpx;
 }
 
@@ -530,18 +524,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 auto;
-  width: auto;
-  min-width: 116rpx;
-  height: 50rpx;
+  width: 100%;
+  height: 68rpx;
   border: 1rpx solid #eadfd7;
-  border-radius: 999rpx;
+  border-radius: 8rpx;
   background: #ffffff;
   color: #5f514a;
-  font-size: 23rpx;
+  font-size: 24rpx;
   line-height: 1;
   margin: 0;
-  padding: 0 20rpx;
+  padding: 0;
 }
 
 .quick-date-btn::after {

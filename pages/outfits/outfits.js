@@ -1,5 +1,5 @@
 const wardrobe = require('../../utils/wardrobe')
-const OCCASION_VISIBLE_LIMIT = 2
+const OCCASION_VISIBLE_LIMIT = 5
 
 Page({
   data: {
@@ -11,7 +11,8 @@ Page({
     canToggleOccasions: false,
     occasionToggleText: '',
     outfits: [],
-    filteredOutfits: []
+    filteredOutfits: [],
+    isFiltering: false
   },
 
   onLoad() {
@@ -59,7 +60,10 @@ Page({
       return matchKeyword && matchOccasion
     })
 
-    this.setData({ filteredOutfits })
+    this.setData({
+      filteredOutfits,
+      isFiltering: Boolean(keyword || this.data.activeOccasion !== '全部')
+    })
   },
 
   onSearch(event) {
@@ -81,6 +85,11 @@ Page({
       canToggleOccasions: occasionView.canToggle,
       occasionToggleText: occasionView.toggleText
     })
+  },
+
+  clearFilters() {
+    this.setData({ keyword: '', activeOccasion: '全部' })
+    this.applyFilters()
   },
 
   goAdd() {

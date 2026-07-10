@@ -63,8 +63,8 @@
   </view>
 
   <view class="actions">
-    <button class="ghost-button" bindtap="editItem">编辑</button>
-    <button class="delete-button" bindtap="confirmDelete">删除</button>
+    <button class="ghost-button" bindtap="editItem" aria-label="编辑衣物">编辑</button>
+    <button class="delete-button" bindtap="confirmDelete" aria-label="删除衣物">删除</button>
   </view>
 </view>
 

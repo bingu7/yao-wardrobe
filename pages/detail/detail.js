@@ -6,8 +6,7 @@ Page({
     item: null,
     seasonText: '',
     occasionText: '',
-    costPerWear: 0,
-    idleStatus: null
+    costPerWear: 0
   },
 
   onLoad(options) {
@@ -24,17 +23,23 @@ Page({
       item: item || null,
       seasonText: item && Array.isArray(item.seasons) ? item.seasons.join('、') : '',
       occasionText: item && Array.isArray(item.occasions) ? item.occasions.join('、') : '',
-      costPerWear: item ? wardrobe.getCostPerWear(item) : 0,
-      idleStatus: item ? wardrobe.getIdleStatus(item) : null
+      costPerWear: item ? wardrobe.getCostPerWear(item) : 0
     })
   },
 
   markWornToday() {
     const result = wardrobe.markWorn(this.data.id)
+    if (!result.ok) {
+      wx.showToast({
+        title: result.message,
+        icon: 'none'
+      })
+      return
+    }
     this.loadItem()
     wx.showToast({
-      title: result.alreadyRecorded ? '今天已记录' : '已记录穿着',
-      icon: result.alreadyRecorded ? 'none' : 'success'
+      title: result.message,
+      icon: 'success'
     })
   },
 

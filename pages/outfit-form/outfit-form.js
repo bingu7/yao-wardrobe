@@ -8,16 +8,18 @@ function emptyForm() {
   }
 }
 
-function buildPieceData(items, allCategories, selectedCategory) {
+function buildPieceData(items, allCategories, selectedCategory, selectedItemId) {
   const filteredItems = selectedCategory
     ? items.filter((item) => item.category === selectedCategory)
     : []
   const itemOptions = [{ id: '', name: '选择衣物' }, ...filteredItems]
+  const itemIndex = itemOptions.findIndex((item) => item.id === selectedItemId)
+  const hasSelectedItem = itemIndex > 0
   return {
     categoryName: selectedCategory || '',
-    itemIndex: 0,
-    itemId: '',
-    displayName: '选择衣物',
+    itemIndex: hasSelectedItem ? itemIndex : 0,
+    itemId: hasSelectedItem ? selectedItemId : '',
+    displayName: hasSelectedItem ? itemOptions[itemIndex].name : '选择衣物',
     itemOptions
   }
 }
@@ -87,16 +89,9 @@ Page({
     const occasionIndex = outfit.occasion ? Math.max(0, this.data.occasionOptions.indexOf(outfit.occasion)) : 0
     
     // 构建 pieces
-    const pieces = (outfit.pieces || []).map((p) => {
-      const pieceData = buildPieceData(items, allCategories, p.category)
-      const itemIndex = pieceData.itemOptions.findIndex((opt) => opt.id === p.itemId)
-      return {
-        ...pieceData,
-        itemIndex: itemIndex >= 0 ? itemIndex : 0,
-        itemId: p.itemId,
-        displayName: itemIndex > 0 ? pieceData.itemOptions[itemIndex].name : '选择衣物'
-      }
-    })
+    const pieces = (outfit.pieces || []).map((p) => (
+      buildPieceData(items, allCategories, p.category, p.itemId)
+    ))
     
     this.setData({
       isEditing: true,
@@ -277,8 +272,15 @@ Page({
       return
     }
     const categories = wardrobe.getFormCategories()
+    const items = wardrobe.getItems()
+    const pieces = this.data.pieces.map((piece) => (
+      piece.categoryName === item.name
+        ? buildPieceData(items, categories, result.category, piece.itemId)
+        : piece
+    ))
     this.setData({
       categoryOptions: categories,
+      pieces,
       categoryPanelItems: buildCategoryPanelItems(categories, wardrobe.getCustomCategories(), result.category)
     })
     wx.showToast({ title: '已更新分类', icon: 'success' })

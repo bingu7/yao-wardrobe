@@ -24,7 +24,7 @@
 
     <view class="field">
       <text class="label">种类</text>
-      <view class="picker-value category-trigger" bindtap="openCategoryPanel">
+      <view class="picker-value category-trigger" bindtap="openCategoryPanel" aria-label="选择愿望分类">
         <text>{{form.category || '选择种类'}}</text>
         <text class="trigger-arrow">›</text>
       </view>
@@ -37,7 +37,7 @@
 
     <view class="field">
       <text class="label">想搭配已有衣物</text>
-      <view class="picker-value category-trigger" bindtap="openMatchPanel">
+      <view class="picker-value category-trigger" bindtap="openMatchPanel" aria-label="选择搭配衣物">
         <text>{{matchLabel}}</text>
         <text class="trigger-arrow">›</text>
       </view>
@@ -68,6 +68,7 @@
           data-category="{{item.name}}"
           bindtap="selectCategoryFromPanel"
           bindlongpress="startCategoryEditing"
+          aria-label="选择分类{{item.name}}"
         >
           {{item.name}}
         </view>
@@ -114,6 +115,7 @@
           data-id="{{item.id}}"
           data-name="{{item.name}}"
           bindtap="selectMatchItem"
+          aria-label="选择{{item.name}}"
         >
           <view class="match-name">{{item.name}}</view>
           <view wx:if="{{item.category}}" class="match-category">{{item.category}}</view>

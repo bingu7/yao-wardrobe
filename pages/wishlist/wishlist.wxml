@@ -9,7 +9,7 @@
   </view>
 
   <view class="search-row">
-    <input class="search-input" placeholder="搜索愿望、价格、备注或搭配衣物" value="{{keyword}}" bindinput="onSearch" />
+    <input class="search-input" placeholder="搜索愿望、备注或搭配衣物" value="{{keyword}}" bindinput="onSearch" />
   </view>
 
   <view class="filter-wrap">
@@ -20,6 +20,7 @@
         class="filter-pill {{activeCategory === item ? 'active' : ''}}"
         data-category="{{item}}"
         bindtap="setCategory"
+        aria-label="按{{item}}筛选"
       >
         {{item}}
       </button>
@@ -28,7 +29,7 @@
   </view>
 
   <view wx:if="{{filteredWishlist.length}}" class="section">
-    <view wx:for="{{filteredWishlist}}" wx:key="id" class="wish-card card">
+    <view wx:for="{{filteredWishlist}}" wx:key="id" class="wish-card card" aria-label="愿望{{item.name}}">
       <view class="wish-image">
         <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
         <view wx:else class="wish-placeholder">{{item.category}}</view>
@@ -43,18 +44,24 @@
         </view>
         <view wx:if="{{item.matchItem}}" class="match-text">可搭：{{item.matchItem.name}}</view>
         <view wx:if="{{item.note}}" class="wish-note">{{item.note}}</view>
-        <view class="wish-actions">
-          <view class="wish-action primary" data-id="{{item.id}}" bindtap="convertWish">转衣物</view>
-          <view class="wish-action" data-id="{{item.id}}" bindtap="editWish">编辑</view>
-          <view class="wish-action danger" data-id="{{item.id}}" bindtap="deleteWish">删除</view>
-        </view>
+         <view class="wish-actions">
+           <button class="purchase-mini" data-id="{{item.id}}" bindtap="purchaseWish">已购买，加入衣橱</button>
+           <button class="delete-mini" data-id="{{item.id}}" bindtap="deleteWish">删除</button>
+         </view>
       </view>
     </view>
   </view>
 
   <view wx:else class="empty card section">
-    <view class="empty-title">没有找到愿望</view>
-    <view class="empty-text">换个关键词或分类，或者添加一个想买的衣物。</view>
-    <button class="primary-button empty-button" bindtap="goAdd">添加愿望</button>
+    <view wx:if="{{isFiltering}}">
+      <view class="empty-title">没有匹配结果</view>
+      <view class="empty-text">换个关键词或分类试试。</view>
+      <button class="primary-button empty-button" bindtap="clearFilters">清除筛选</button>
+    </view>
+    <view wx:else>
+      <view class="empty-title">还没有愿望</view>
+      <view class="empty-text">把想买的衣物记下来，之后再决定。</view>
+      <button class="primary-button empty-button" bindtap="goAdd">添加愿望</button>
+    </view>
   </view>
 </view>

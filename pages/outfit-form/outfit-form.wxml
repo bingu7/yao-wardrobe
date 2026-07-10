@@ -15,7 +15,7 @@
 
     <view class="field">
       <text class="label">场合</text>
-      <view class="picker-value category-trigger" bindtap="openOccasionPanel">
+      <view class="picker-value category-trigger" bindtap="openOccasionPanel" aria-label="选择穿搭场合">
         <text>{{occasionLabel}}</text>
         <text class="trigger-arrow">›</text>
       </view>
@@ -36,7 +36,7 @@
 
       <view class="field">
         <text class="label">选择分类</text>
-        <view class="picker-value category-trigger" data-index="{{index}}" bindtap="openCategoryPanel">
+        <view class="picker-value category-trigger" data-index="{{index}}" bindtap="openCategoryPanel" aria-label="选择第{{index}}件衣物分类">
           <text>{{item.categoryName || '选择分类'}}</text>
           <text class="trigger-arrow">›</text>
         </view>
@@ -44,7 +44,7 @@
 
       <view class="field">
         <text class="label">选择衣物</text>
-        <view class="picker-value category-trigger" data-index="{{index}}" bindtap="openItemPanel">
+        <view class="picker-value category-trigger" data-index="{{index}}" bindtap="openItemPanel" aria-label="选择第{{index}}件衣物">
           <text>{{item.displayName}}</text>
           <text class="trigger-arrow">›</text>
         </view>
@@ -79,6 +79,7 @@
           data-category="{{item.name}}"
           bindtap="selectCategoryFromPanel"
           bindlongpress="toggleCategoryEditing"
+          aria-label="选择分类{{item.name}}"
         >
           {{item.name}}
         </view>
@@ -147,6 +148,7 @@
           data-id="{{item.id}}"
           data-name="{{item.name}}"
           bindtap="selectItem"
+          aria-label="选择衣物{{item.name}}"
         >
           <view class="match-name">{{item.name}}</view>
         </view>

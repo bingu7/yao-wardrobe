@@ -12,6 +12,23 @@
       <text class="hero-money">¥{{summary.totalPrice}}</text>
       <text class="hero-note">总花费</text>
     </view>
+    <view class="summary-card card">
+      <text class="value">{{summary.priceRange.min}}-{{summary.priceRange.max}}</text>
+      <text class="label">价格区间</text>
+    </view>
+  </view>
+
+  <view class="insight-grid section">
+    <view class="insight-card card">
+      <view class="block-title">最常穿</view>
+      <view class="insight-name">{{summary.mostWornItem.name || '暂无记录'}}</view>
+      <view class="muted">{{summary.mostWornItem.wearCount || 0}} 次</view>
+    </view>
+    <view class="insight-card card">
+      <view class="block-title">长期未穿</view>
+      <view class="insight-name">{{summary.longestUnwornItem.item.name || '暂无记录'}}</view>
+      <view class="muted">{{summary.longestUnwornItem.daysSinceWorn || 0}} 天</view>
+    </view>
   </view>
 
   <view class="metric-strip">
