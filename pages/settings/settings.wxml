@@ -10,11 +10,13 @@
   </view>
 
   <view class="section card">
-    <view class="block-title">数据备份</view>
-    <view class="paragraph">复制备份后可以保存到备忘录、网盘或自己的文档里。恢复时粘贴完整 JSON 内容即可。</view>
+    <view class="block-title">数据备份与恢复</view>
+    <view class="paragraph">建议两手准备：复制一份备份内容，同时导出一份 JSON 文件。恢复时可粘贴内容或选择文件导入。</view>
     <view class="action-row">
-      <view class="action primary" bindtap="copyBackup">复制备份</view>
-      <view class="action" bindtap="openImportPanel">恢复备份</view>
+      <view class="action primary" bindtap="copyBackup">复制到剪贴板</view>
+      <view class="action" bindtap="exportBackupFile">导出备份文件</view>
+      <view class="action" bindtap="openImportPanel">粘贴备份内容</view>
+      <view class="action" bindtap="importBackupFile">导入备份文件</view>
     </view>
   </view>
 
@@ -46,11 +48,11 @@
 
   <view wx:if="{{showImportPanel}}" class="modal-mask" bindtap="closeImportPanel">
     <view class="import-panel" catchtap="noop">
-      <view class="import-title">恢复备份</view>
+      <view class="import-title">粘贴备份内容</view>
       <textarea class="backup-input" placeholder="粘贴 JSON 备份内容" value="{{backupText}}" bindinput="onBackupInput" maxlength="-1"></textarea>
       <view class="action-row">
         <view class="action" bindtap="closeImportPanel">取消</view>
-        <view class="action primary" bindtap="confirmImport">恢复</view>
+        <view class="action primary" bindtap="confirmImport">导入</view>
       </view>
     </view>
   </view>
