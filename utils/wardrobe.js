@@ -1,10 +1,12 @@
 const STORAGE_KEY = 'privateWardrobeItems'
 const OUTFIT_STORAGE_KEY = 'privateWardrobeOutfits'
 const WISHLIST_STORAGE_KEY = 'privateWardrobeWishlist'
+const WEAR_LOG_STORAGE_KEY = 'privateWardrobeWearLogs'
 const CATEGORY_STORAGE_KEY = 'privateWardrobeCustomCategories'
 const CATEGORY_MANAGED_KEY = 'privateWardrobeCategoriesManaged'
 const OCCASION_STORAGE_KEY = 'privateWardrobeCustomOccasions'
 const OCCASION_MANAGED_KEY = 'privateWardrobeOccasionsManaged'
+const IDLE_ALERT_DAYS = 60
 
 const defaultCategories = ['连衣裙', '上衣', '下装', '外套', '鞋子', '包包', '帽子/发饰', '配饰', '其他']
 const seasons = ['春', '夏', '秋', '冬']
@@ -135,10 +137,17 @@ function deleteCustomCategory(category) {
   if (!value) {
     return { ok: false, message: '分类不存在' }
   }
-  wx.setStorageSync(CATEGORY_STORAGE_KEY, getCustomCategories().filter((item) => item !== value))
+  if (value === '其他') {
+    return { ok: false, message: '其他是兜底分类，不能删除' }
+  }
+  const fallback = '其他'
+  const nextCategories = getCustomCategories().filter((item) => item !== value)
+  if (!nextCategories.includes(fallback)) {
+    nextCategories.push(fallback)
+  }
+  wx.setStorageSync(CATEGORY_STORAGE_KEY, nextCategories)
   wx.setStorageSync(CATEGORY_MANAGED_KEY, true)
   // 将使用该分类的衣物归为「其他」
-  const fallback = '其他'
   saveItems(getItems().map((item) => (
     item.category === value ? { ...item, category: fallback, updatedAt: new Date().toISOString() } : item
   )))
@@ -156,6 +165,9 @@ function renameCustomCategory(oldCategory, newCategory) {
   }
   if (oldValue === newValue) {
     return { ok: true, category: oldValue }
+  }
+  if (oldValue === '其他') {
+    return { ok: false, message: '其他是兜底分类，不能重命名' }
   }
   if (newValue === '全部') {
     return { ok: false, message: '分类不能叫全部' }
@@ -234,6 +246,18 @@ function deleteCustomOccasion(occasion) {
   }
   wx.setStorageSync(OCCASION_STORAGE_KEY, getCustomOccasions().filter((item) => item !== value))
   wx.setStorageSync(OCCASION_MANAGED_KEY, true)
+  saveItems(getItems().map((item) => (
+    Array.isArray(item.occasions) && item.occasions.includes(value)
+      ? {
+        ...item,
+        occasions: item.occasions.filter((occasion) => occasion !== value),
+        updatedAt: new Date().toISOString()
+      }
+      : item
+  )))
+  saveOutfits(getOutfits().map((outfit) => (
+    outfit.occasion === value ? { ...outfit, occasion: '', updatedAt: new Date().toISOString() } : outfit
+  )))
   return { ok: true }
 }
 
@@ -297,6 +321,15 @@ function normalizeItem(item) {
   }
 }
 
+function createUniqueId(prefix, existingIds) {
+  const ids = new Set(existingIds || [])
+  let id = ''
+  do {
+    id = `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  } while (ids.has(id))
+  return id
+}
+
 /** 公用：构建分类面板的 items 数组 */
 function buildCategoryPanelItems(categories, customCategories, selectedCategory) {
   return categories.map((name, index) => ({
@@ -329,6 +362,32 @@ function createDebounce(wait) {
   }
 }
 
+function formatLocalDate(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function parseLocalDate(dateText) {
+  const date = new Date(`${dateText}T00:00:00`)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function getDaysSince(dateText) {
+  const date = parseLocalDate(dateText)
+  if (!date) return null
+  return Math.max(0, Math.floor((new Date() - date) / 86400000))
+}
+
+function getCurrentSeason(date) {
+  const month = (date || new Date()).getMonth() + 1
+  if ([3, 4, 5].includes(month)) return '春'
+  if ([6, 7, 8].includes(month)) return '夏'
+  if ([9, 10, 11].includes(month)) return '秋'
+  return '冬'
+}
+
 function saveItems(items) {
   wx.setStorageSync(STORAGE_KEY, items)
 }
@@ -359,7 +418,7 @@ function removeImageFile(filePath) {
 
 function getItem(id) {
   const item = getItems().find((current) => current.id === id)
-  return item ? normalizeItem(item) : undefined
+  return item ? normalizeItem(item) : null
 }
 
 function upsertItem(item) {
@@ -380,7 +439,7 @@ function upsertItem(item) {
     return item.id
   }
 
-  const id = `item_${Date.now()}`
+  const id = createUniqueId('item', items.map((current) => current.id))
   saveItems([
     normalizeItem({
       ...item,
@@ -400,22 +459,128 @@ function deleteItem(id) {
     removeImageFile(item.imageUrl)
   }
   saveItems(items.filter((i) => i.id !== id))
+  saveOutfits(getOutfits().map((outfit) => ({
+    ...outfit,
+    pieces: (outfit.pieces || []).filter((piece) => piece.itemId !== id),
+    updatedAt: new Date().toISOString()
+  })))
+  saveWishlist(getWishlist().map((wish) => (
+    wish.matchItemId === id ? { ...wish, matchItemId: '', updatedAt: new Date().toISOString() } : wish
+  )))
+  removeItemFromWearLogs(id)
 }
 
-function markWorn(id) {
-  const today = new Date().toISOString().slice(0, 10)
-  const items = getItems().map((item) => {
-    if (item.id !== id) {
-      return item
+function getWearLogs() {
+  const saved = wx.getStorageSync(WEAR_LOG_STORAGE_KEY)
+  return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {}
+}
+
+function saveWearLogs(logs) {
+  wx.setStorageSync(WEAR_LOG_STORAGE_KEY, logs)
+}
+
+function normalizeIdList(list) {
+  return Array.from(new Set((Array.isArray(list) ? list : []).map((id) => String(id || '').trim()).filter(Boolean)))
+}
+
+function getWearLog(dateText) {
+  return normalizeIdList(getWearLogs()[dateText])
+}
+
+function getLatestLogDateForItem(itemId, logs) {
+  return Object.keys(logs)
+    .filter((date) => normalizeIdList(logs[date]).includes(itemId))
+    .sort()
+    .pop() || ''
+}
+
+function setWearLog(dateText, itemIds) {
+  const date = String(dateText || '').trim()
+  if (!parseLocalDate(date)) {
+    return { ok: false, message: '日期不正确' }
+  }
+  const logs = getWearLogs()
+  const oldIds = normalizeIdList(logs[date])
+  const nextIds = normalizeIdList(itemIds)
+  logs[date] = nextIds
+  saveWearLogs(logs)
+
+  const addedIds = nextIds.filter((id) => !oldIds.includes(id))
+  const removedIds = oldIds.filter((id) => !nextIds.includes(id))
+  if (!addedIds.length && !removedIds.length) {
+    return { ok: true, date, changed: false }
+  }
+
+  const now = new Date().toISOString()
+  saveItems(getItems().map((item) => {
+    if (addedIds.includes(item.id)) {
+      const lastWornDate = !item.lastWornDate || item.lastWornDate < date ? date : item.lastWornDate
+      return normalizeItem({
+        ...item,
+        wearCount: (Number(item.wearCount) || 0) + 1,
+        lastWornDate,
+        updatedAt: now
+      })
     }
-    return normalizeItem({
-      ...item,
-      wearCount: (Number(item.wearCount) || 0) + 1,
-      lastWornDate: today,
-      updatedAt: new Date().toISOString()
-    })
+    if (removedIds.includes(item.id)) {
+      const latestDate = item.lastWornDate === date ? getLatestLogDateForItem(item.id, logs) : item.lastWornDate
+      return normalizeItem({
+        ...item,
+        wearCount: Math.max((Number(item.wearCount) || 0) - 1, 0),
+        lastWornDate: latestDate,
+        updatedAt: now
+      })
+    }
+    return item
+  }))
+  return { ok: true, date, changed: true }
+}
+
+function removeItemFromWearLogs(itemId) {
+  const logs = getWearLogs()
+  const nextLogs = Object.keys(logs).reduce((next, date) => {
+    const ids = normalizeIdList(logs[date]).filter((id) => id !== itemId)
+    next[date] = ids
+    return next
+  }, {})
+  saveWearLogs(nextLogs)
+}
+
+function markWorn(id, dateText) {
+  const date = dateText || formatLocalDate(new Date())
+  const ids = getWearLog(date)
+  if (ids.includes(id)) {
+    return { ok: true, date, alreadyRecorded: true }
+  }
+  const result = setWearLog(date, [...ids, id])
+  return { ...result, alreadyRecorded: false }
+}
+
+function hydrateWearLog(dateText, items) {
+  const itemMap = (items || getItems()).reduce((map, item) => {
+    map[item.id] = normalizeItem(item)
+    return map
+  }, {})
+  return getWearLog(dateText).map((id) => itemMap[id]).filter(Boolean)
+}
+
+function getWearCalendar(days) {
+  const totalDays = days || 21
+  const logs = getWearLogs()
+  const items = getItems()
+  const today = new Date()
+  return Array.from({ length: totalDays }).map((_, index) => {
+    const date = new Date(today)
+    date.setDate(today.getDate() - index)
+    const dateText = formatLocalDate(date)
+    const dayItems = hydrateWearLog(dateText, items)
+    return {
+      date: dateText,
+      monthDay: dateText.slice(5),
+      itemCount: normalizeIdList(logs[dateText]).length,
+      names: dayItems.map((item) => item.name).join('、')
+    }
   })
-  saveItems(items)
 }
 
 function getCostPerWear(item) {
@@ -478,7 +643,7 @@ function upsertOutfit(outfit) {
     return outfit.id
   }
 
-  const id = `outfit_${Date.now()}`
+  const id = createUniqueId('outfit', outfits.map((current) => current.id))
   saveOutfits([
     {
       ...outfit,
@@ -528,12 +693,38 @@ function addWishlistItem(item) {
   saveWishlist([
     {
       ...item,
-      id: `wish_${Date.now()}`,
+      id: createUniqueId('wish', getWishlist().map((current) => current.id)),
       createdAt: now,
       updatedAt: now
     },
     ...getWishlist()
   ])
+}
+
+function getWishlistItem(id) {
+  return getWishlist().find((item) => item.id === id) || null
+}
+
+function upsertWishlistItem(item) {
+  const now = new Date().toISOString()
+  if (item.id) {
+    saveWishlist(getWishlist().map((current) => (
+      current.id === item.id ? { ...current, ...item, updatedAt: now } : current
+    )))
+    return item.id
+  }
+
+  const id = createUniqueId('wish', getWishlist().map((current) => current.id))
+  saveWishlist([
+    {
+      ...item,
+      id,
+      createdAt: now,
+      updatedAt: now
+    },
+    ...getWishlist()
+  ])
+  return id
 }
 
 function deleteWishlistItem(id) {
@@ -545,6 +736,171 @@ function deleteWishlistItem(id) {
   saveWishlist(list.filter((i) => i.id !== id))
 }
 
+function convertWishlistToItem(id) {
+  const wish = getWishlistItem(id)
+  if (!wish) {
+    return { ok: false, message: '愿望不存在' }
+  }
+  const itemId = upsertItem({
+    imageUrl: wish.imageUrl || '',
+    name: wish.name || '未命名衣物',
+    category: wish.category || '其他',
+    price: wish.expectedPrice === '' || wish.expectedPrice === undefined ? '' : Number(wish.expectedPrice) || '',
+    color: '',
+    seasons: [],
+    occasions: [],
+    purchaseDate: formatLocalDate(new Date()),
+    status: '',
+    note: wish.note || ''
+  })
+  saveWishlist(getWishlist().filter((item) => item.id !== id))
+  return { ok: true, itemId }
+}
+
+function batchUpdateCategory(ids, category) {
+  const itemIds = normalizeIdList(ids)
+  const value = String(category || '').trim()
+  if (!itemIds.length) return { ok: false, message: '请选择衣物' }
+  if (!value) return { ok: false, message: '请选择分类' }
+  const now = new Date().toISOString()
+  saveItems(getItems().map((item) => (
+    itemIds.includes(item.id) ? { ...item, category: value, updatedAt: now } : item
+  )))
+  return { ok: true }
+}
+
+function batchAddOccasions(ids, occasions) {
+  const itemIds = normalizeIdList(ids)
+  const values = normalizeIdList(occasions)
+  if (!itemIds.length) return { ok: false, message: '请选择衣物' }
+  if (!values.length) return { ok: false, message: '请选择场合' }
+  const now = new Date().toISOString()
+  saveItems(getItems().map((item) => (
+    itemIds.includes(item.id)
+      ? {
+        ...item,
+        occasions: Array.from(new Set([...(Array.isArray(item.occasions) ? item.occasions : []), ...values])),
+        updatedAt: now
+      }
+      : item
+  )))
+  return { ok: true }
+}
+
+function batchDeleteItems(ids) {
+  const itemIds = normalizeIdList(ids)
+  if (!itemIds.length) return { ok: false, message: '请选择衣物' }
+  itemIds.forEach((id) => deleteItem(id))
+  return { ok: true }
+}
+
+function exportData() {
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    items: getItems(),
+    outfits: getOutfits(),
+    wishlist: getWishlist(),
+    wearLogs: getWearLogs(),
+    categories: getCustomCategories(),
+    occasions: getCustomOccasions()
+  }
+}
+
+function toArray(value) {
+  return Array.isArray(value) ? value : []
+}
+
+function importData(data) {
+  if (!data || typeof data !== 'object') {
+    return { ok: false, message: '备份内容格式不正确' }
+  }
+  const backupCategories = toArray(data.categories)
+  const backupOccasions = toArray(data.occasions)
+  const categories = uniqCategories([...(backupCategories.length ? backupCategories : defaultCategories), '其他'])
+  const occasions = uniqCategories(backupOccasions.length ? backupOccasions : defaultOccasions)
+
+  wx.setStorageSync(STORAGE_KEY, toArray(data.items).map(normalizeItem))
+  wx.setStorageSync(OUTFIT_STORAGE_KEY, toArray(data.outfits))
+  wx.setStorageSync(WISHLIST_STORAGE_KEY, toArray(data.wishlist))
+  wx.setStorageSync(WEAR_LOG_STORAGE_KEY, data.wearLogs && typeof data.wearLogs === 'object' ? data.wearLogs : {})
+  wx.setStorageSync(CATEGORY_STORAGE_KEY, categories)
+  wx.setStorageSync(CATEGORY_MANAGED_KEY, true)
+  wx.setStorageSync(OCCASION_STORAGE_KEY, occasions)
+  wx.setStorageSync(OCCASION_MANAGED_KEY, true)
+  return { ok: true }
+}
+
+function getIdleStatus(item, idleDays) {
+  const days = idleDays || IDLE_ALERT_DAYS
+  const normalized = normalizeItem(item)
+  if (Number(normalized.wearCount) === 0) {
+    return {
+      isIdle: true,
+      label: '可能闲置',
+      text: '还没记录穿着'
+    }
+  }
+  const daysSince = getDaysSince(normalized.lastWornDate)
+  if (daysSince !== null && daysSince >= days) {
+    return {
+      isIdle: true,
+      label: '可能闲置',
+      text: `${daysSince} 天没穿`
+    }
+  }
+  return {
+    isIdle: false,
+    label: '',
+    text: daysSince === null ? '未记录' : `${daysSince} 天前`
+  }
+}
+
+function enrichItemForDisplay(item) {
+  const normalized = normalizeItem(item)
+  const idleStatus = getIdleStatus(normalized)
+  return {
+    ...normalized,
+    idleStatus,
+    statusHint: idleStatus.isIdle ? idleStatus.label : '',
+    idleText: idleStatus.text
+  }
+}
+
+function getHomeInsights(items) {
+  const normalizedItems = (items || getItems()).map(enrichItemForDisplay)
+  const currentSeason = getCurrentSeason()
+  const recentItems = normalizedItems
+    .filter((item) => item.lastWornDate)
+    .slice()
+    .sort((a, b) => b.lastWornDate.localeCompare(a.lastWornDate))
+    .slice(0, 4)
+  const staleItems = normalizedItems
+    .filter((item) => item.idleStatus.isIdle)
+    .slice()
+    .sort((a, b) => (Number(a.wearCount) || 0) - (Number(b.wearCount) || 0))
+    .slice(0, 4)
+  const seasonItems = normalizedItems.filter((item) => item.seasons.includes(currentSeason))
+  const recommendPool = seasonItems.length ? seasonItems : normalizedItems
+  const weeklyItems = recommendPool
+    .filter((item) => getDaysSince(item.lastWornDate) === null || getDaysSince(item.lastWornDate) > 7)
+    .slice()
+    .sort((a, b) => {
+      const wearDiff = (Number(a.wearCount) || 0) - (Number(b.wearCount) || 0)
+      if (wearDiff !== 0) return wearDiff
+      return String(a.lastWornDate || '').localeCompare(String(b.lastWornDate || ''))
+    })
+    .slice(0, 4)
+
+  return {
+    currentSeason,
+    recentItems,
+    staleItems,
+    weeklyItems,
+    todayRecordCount: getWearLog(formatLocalDate(new Date())).length
+  }
+}
+
 function summarize(items) {
   const normalizedItems = items.map(normalizeItem)
   const pricedItems = normalizedItems.filter((item) => Number(item.price) > 0)
@@ -554,20 +910,70 @@ function summarize(items) {
     category,
     count: normalizedItems.filter((item) => item.category === category).length
   })).sort((a, b) => b.count - a.count)
+  const seasonCounts = seasons.map((season) => ({
+    season,
+    count: normalizedItems.filter((item) => item.seasons.includes(season)).length
+  })).filter((item) => item.count > 0).sort((a, b) => b.count - a.count)
+  const itemOccasions = [...new Set(normalizedItems.reduce((list, item) => (
+    [...list, ...item.occasions]
+  ), []))]
+  const occasionCounts = itemOccasions.map((occasion) => ({
+    occasion,
+    count: normalizedItems.filter((item) => item.occasions.includes(occasion)).length
+  })).sort((a, b) => b.count - a.count)
   const totalWearCount = normalizedItems.reduce((sum, item) => sum + (Number(item.wearCount) || 0), 0)
   const wornItems = normalizedItems.filter((item) => Number(item.wearCount) > 0)
+  const today = new Date()
+  const getIdleDays = (dateText) => {
+    if (!dateText) return null
+    const date = new Date(`${dateText}T00:00:00`)
+    if (Number.isNaN(date.getTime())) return null
+    return Math.max(0, Math.floor((today - date) / 86400000))
+  }
+  const neverWornCount = normalizedItems.filter((item) => Number(item.wearCount) === 0).length
+  const idleOver90Count = normalizedItems.filter((item) => {
+    if (Number(item.wearCount) === 0) return true
+    const days = getIdleDays(item.lastWornDate)
+    return days !== null && days > 90
+  }).length
+  const mostWornItems = wornItems
+    .slice()
+    .sort((a, b) => (Number(b.wearCount) || 0) - (Number(a.wearCount) || 0))
+    .slice(0, 5)
+    .map((item) => ({
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      wearCount: Number(item.wearCount) || 0
+    }))
+  const highestCostPerWearItems = wornItems
+    .filter((item) => Number(item.price) > 0)
+    .map((item) => ({
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      costPerWear: getCostPerWear(item)
+    }))
+    .sort((a, b) => b.costPerWear - a.costPerWear)
+    .slice(0, 5)
 
   return {
     totalCount: normalizedItems.length,
     totalPrice,
     averagePrice: pricedItems.length ? Math.round(totalPrice / pricedItems.length) : 0,
     idleCount: normalizedItems.filter((item) => item.status === '闲置').length,
+    neverWornCount,
+    idleOver90Count,
     totalWearCount,
     wornItemCount: wornItems.length,
     averageCostPerWear: wornItems.length
       ? Number((wornItems.reduce((sum, item) => sum + getCostPerWear(item), 0) / wornItems.length).toFixed(2))
       : 0,
-    categoryCounts
+    categoryCounts,
+    seasonCounts,
+    occasionCounts,
+    mostWornItems,
+    highestCostPerWearItems
   }
 }
 
@@ -578,6 +984,7 @@ module.exports = {
   defaultOccasions,
   persistImage,
   removeImageFile,
+  IDLE_ALERT_DAYS,
   getCustomOccasions,
   getOccasions,
   addCustomOccasion,
@@ -590,6 +997,8 @@ module.exports = {
   buildCategoryPanelItems,
   buildCustomView,
   createDebounce,
+  formatLocalDate,
+  getCurrentSeason,
   addCustomCategory,
   deleteCustomCategory,
   renameCustomCategory,
@@ -599,6 +1008,11 @@ module.exports = {
   upsertItem,
   deleteItem,
   markWorn,
+  getWearLogs,
+  getWearLog,
+  setWearLog,
+  hydrateWearLog,
+  getWearCalendar,
   getCostPerWear,
   getOutfits,
   getOutfit,
@@ -607,7 +1021,18 @@ module.exports = {
   deleteOutfit,
   hydrateOutfit,
   getWishlist,
+  getWishlistItem,
   addWishlistItem,
+  upsertWishlistItem,
   deleteWishlistItem,
+  convertWishlistToItem,
+  batchUpdateCategory,
+  batchAddOccasions,
+  batchDeleteItems,
+  exportData,
+  importData,
+  getIdleStatus,
+  enrichItemForDisplay,
+  getHomeInsights,
   summarize
 }

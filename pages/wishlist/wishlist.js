@@ -61,7 +61,7 @@ Page({
     const keyword = this.data.keyword.trim().toLowerCase()
     const filteredWishlist = this.data.wishlist.filter((item) => {
       const matchName = item.matchItem ? item.matchItem.name : ''
-      const text = `${item.name} ${item.category} ${item.note || ''} ${matchName}`.toLowerCase()
+      const text = `${item.name} ${item.category} ${item.expectedPrice || ''} ${item.note || ''} ${matchName}`.toLowerCase()
       const matchKeyword = !keyword || text.includes(keyword)
       const matchCategory = this.data.activeCategory === '全部' || item.category === this.data.activeCategory
       return matchKeyword && matchCategory
@@ -94,6 +94,34 @@ Page({
   goAdd() {
     wx.navigateTo({
       url: '/pages/wish-form/wish-form'
+    })
+  },
+
+  editWish(event) {
+    wx.setStorageSync('wishlistEditingId', event.currentTarget.dataset.id)
+    wx.navigateTo({
+      url: '/pages/wish-form/wish-form'
+    })
+  },
+
+  convertWish(event) {
+    const id = event.currentTarget.dataset.id
+    wx.showModal({
+      title: '转入衣橱',
+      content: '会带入名称、分类、图片、预计价格和备注，并从愿望清单移除。',
+      confirmColor: '#7b3b32',
+      success: (res) => {
+        if (!res.confirm) {
+          return
+        }
+        const result = wardrobe.convertWishlistToItem(id)
+        if (!result.ok) {
+          wx.showToast({ title: result.message, icon: 'none' })
+          return
+        }
+        wx.showToast({ title: '已转入衣橱', icon: 'success' })
+        this.loadData()
+      }
     })
   },
 

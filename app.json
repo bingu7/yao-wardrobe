@@ -4,6 +4,7 @@
     "pages/add/add",
     "pages/outfits/outfits",
     "pages/outfit-form/outfit-form",
+    "pages/wear-calendar/wear-calendar",
     "pages/wishlist/wishlist",
     "pages/wish-form/wish-form",
     "pages/detail/detail",

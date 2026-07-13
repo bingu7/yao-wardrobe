@@ -55,6 +55,10 @@
         <text class="wear-label">单次成本</text>
       </view>
     </view>
+    <view wx:if="{{idleStatus && idleStatus.isIdle}}" class="idle-tip">
+      <text class="idle-label">{{idleStatus.label}}</text>
+      <text class="idle-text">{{idleStatus.text}}</text>
+    </view>
     <button class="primary-button worn-button" bindtap="markWornToday">今天穿了</button>
   </view>
 

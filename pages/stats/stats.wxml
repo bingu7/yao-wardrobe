@@ -3,45 +3,158 @@
   <view class="title">衣橱统计</view>
   <view class="subtitle">看看衣柜里的数量、花费和使用情况</view>
 
-  <view class="summary-grid section">
-    <view class="summary-card card">
-      <text class="value">{{summary.totalCount}}</text>
-      <text class="label">总件数</text>
+  <view class="hero-card card section">
+    <view class="hero-main">
+      <text class="hero-value">{{summary.totalCount}}</text>
+      <text class="hero-label">当前衣物</text>
     </view>
-    <view class="summary-card card">
-      <text class="value">¥{{summary.totalPrice}}</text>
-      <text class="label">总花费</text>
-    </view>
-    <view class="summary-card card">
-      <text class="value">¥{{summary.averagePrice}}</text>
-      <text class="label">平均单价</text>
-    </view>
-    <view class="summary-card card">
-      <text class="value">{{summary.idleCount}}</text>
-      <text class="label">闲置数量</text>
-    </view>
-    <view class="summary-card card">
-      <text class="value">{{summary.totalWearCount}}</text>
-      <text class="label">穿着总次数</text>
-    </view>
-    <view class="summary-card card">
-      <text class="value">{{summary.wornItemCount}}</text>
-      <text class="label">已穿过衣物</text>
-    </view>
-    <view class="summary-card card wide">
-      <text class="value">¥{{summary.averageCostPerWear}}</text>
-      <text class="label">平均单次穿着成本</text>
+    <view class="hero-side">
+      <text class="hero-money">¥{{summary.totalPrice}}</text>
+      <text class="hero-note">总花费</text>
     </view>
   </view>
 
-  <view class="category-card card section">
-    <view class="block-title">分类数量</view>
-    <view wx:for="{{summary.categoryCounts}}" wx:key="category" class="category-row">
-      <text>{{item.category}}</text>
-      <view class="bar-wrap">
-        <view class="bar" style="width: {{item.percent}}%;"></view>
+  <view class="metric-strip">
+    <view class="metric-card card">
+      <text class="metric-value">¥{{summary.averagePrice}}</text>
+      <text class="metric-label">平均单价</text>
+    </view>
+    <view class="metric-card card">
+      <text class="metric-value">{{summary.totalWearCount}}</text>
+      <text class="metric-label">穿着次数</text>
+    </view>
+    <view class="metric-card card">
+      <text class="metric-value">{{summary.idleOver90Count}}</text>
+      <text class="metric-label">90天未穿</text>
+    </view>
+  </view>
+
+  <view class="stats-tabs">
+    <view
+      wx:for="{{statsTabs}}"
+      wx:key="key"
+      class="stats-tab {{activeStatsTab === item.key ? 'active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="setStatsTab"
+    >
+      {{item.label}}
+    </view>
+  </view>
+
+  <view wx:if="{{activeStatsTab === 'overview'}}" class="tab-panel">
+    <view class="insight-card card">
+      <view class="block-title">衣橱健康</view>
+      <view class="health-grid">
+        <view>
+          <text class="health-value">{{summary.wornItemCount}}</text>
+          <text class="health-label">已穿过</text>
+        </view>
+        <view>
+          <text class="health-value">{{summary.neverWornCount}}</text>
+          <text class="health-label">未穿过</text>
+        </view>
+        <view>
+          <text class="health-value">{{summary.idleCount}}</text>
+          <text class="health-label">手动闲置</text>
+        </view>
       </view>
-      <text class="count">{{item.count}}</text>
+      <view class="health-tip">平均单次穿着成本 ¥{{summary.averageCostPerWear}}</view>
+    </view>
+
+    <view class="category-card card section">
+      <view class="block-title">分类概览</view>
+      <view wx:for="{{summary.categoryCounts}}" wx:key="category" class="category-row">
+        <text>{{item.category}}</text>
+        <view class="bar-wrap">
+          <view class="bar" style="width: {{item.percent}}%;"></view>
+        </view>
+        <text class="count">{{item.count}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{activeStatsTab === 'usage'}}" class="tab-panel">
+    <view class="list-card card" wx:if="{{summary.mostWornItems.length}}">
+      <view class="block-title">最常穿 Top 5</view>
+      <view wx:for="{{summary.mostWornItems}}" wx:key="id" class="rank-row">
+        <view class="rank-main">
+          <text class="rank-name">{{item.name}}</text>
+          <text class="rank-meta">{{item.category}}</text>
+        </view>
+        <text class="rank-value">{{item.wearCount}} 次</text>
+      </view>
+    </view>
+
+    <view class="list-card card section" wx:if="{{summary.highestCostPerWearItems.length}}">
+      <view class="block-title">单次成本偏高</view>
+      <view wx:for="{{summary.highestCostPerWearItems}}" wx:key="id" class="rank-row">
+        <view class="rank-main">
+          <text class="rank-name">{{item.name}}</text>
+          <text class="rank-meta">{{item.category}}</text>
+        </view>
+        <text class="rank-value">¥{{item.costPerWear}}/次</text>
+      </view>
+    </view>
+
+    <view wx:if="{{!summary.mostWornItems.length && !summary.highestCostPerWearItems.length}}" class="empty-card card">
+      暂时还没有穿着记录
+    </view>
+  </view>
+
+  <view wx:if="{{activeStatsTab === 'distribution'}}" class="tab-panel">
+    <view class="category-card card" wx:if="{{summary.categoryCounts.length}}">
+      <view class="block-title">分类数量</view>
+      <view wx:for="{{summary.categoryCounts}}" wx:key="category" class="category-row">
+        <text>{{item.category}}</text>
+        <view class="bar-wrap">
+          <view class="bar" style="width: {{item.percent}}%;"></view>
+        </view>
+        <text class="count">{{item.count}}</text>
+      </view>
+    </view>
+
+    <view class="category-card card section" wx:if="{{summary.seasonCounts.length}}">
+      <view class="block-title">季节分布</view>
+      <view wx:for="{{summary.seasonCounts}}" wx:key="season" class="category-row">
+        <text>{{item.season}}</text>
+        <view class="bar-wrap">
+          <view class="bar season-bar" style="width: {{item.percent}}%;"></view>
+        </view>
+        <text class="count">{{item.count}}</text>
+      </view>
+    </view>
+
+    <view class="category-card card section" wx:if="{{summary.occasionCounts.length}}">
+      <view class="block-title">场合分布</view>
+      <view wx:for="{{summary.occasionCounts}}" wx:key="occasion" class="category-row">
+        <text>{{item.occasion}}</text>
+        <view class="bar-wrap">
+          <view class="bar occasion-bar" style="width: {{item.percent}}%;"></view>
+        </view>
+        <text class="count">{{item.count}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{activeStatsTab === 'data'}}" class="tab-panel">
+    <view class="backup-card card">
+      <view class="block-title">数据备份</view>
+      <view class="backup-text">复制备份可保存到备忘录；恢复时粘贴备份内容即可。</view>
+      <view class="backup-actions">
+        <view class="backup-button primary" bindtap="copyBackup">复制备份</view>
+        <view class="backup-button" bindtap="openImportPanel">恢复备份</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showImportPanel}}" class="modal-mask" bindtap="closeImportPanel">
+    <view class="import-panel" catchtap="noop">
+      <view class="import-title">恢复备份</view>
+      <textarea class="backup-input" placeholder="粘贴 JSON 备份内容" value="{{backupText}}" bindinput="onBackupInput" maxlength="-1"></textarea>
+      <view class="import-actions">
+        <view class="backup-button" bindtap="closeImportPanel">取消</view>
+        <view class="backup-button primary" bindtap="confirmImport">恢复</view>
+      </view>
     </view>
   </view>
 </view>

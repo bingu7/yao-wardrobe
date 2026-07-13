@@ -9,7 +9,7 @@
   </view>
 
   <view class="search-row">
-    <input class="search-input" placeholder="搜索愿望、备注或搭配衣物" value="{{keyword}}" bindinput="onSearch" />
+    <input class="search-input" placeholder="搜索愿望、价格、备注或搭配衣物" value="{{keyword}}" bindinput="onSearch" />
   </view>
 
   <view class="filter-wrap">
@@ -43,7 +43,11 @@
         </view>
         <view wx:if="{{item.matchItem}}" class="match-text">可搭：{{item.matchItem.name}}</view>
         <view wx:if="{{item.note}}" class="wish-note">{{item.note}}</view>
-        <button class="delete-mini" data-id="{{item.id}}" bindtap="deleteWish">删除</button>
+        <view class="wish-actions">
+          <view class="wish-action primary" data-id="{{item.id}}" bindtap="convertWish">转衣物</view>
+          <view class="wish-action" data-id="{{item.id}}" bindtap="editWish">编辑</view>
+          <view class="wish-action danger" data-id="{{item.id}}" bindtap="deleteWish">删除</view>
+        </view>
       </view>
     </view>
   </view>

@@ -18,6 +18,107 @@
   font-size: 26rpx;
 }
 
+.hero-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22rpx;
+  padding: 30rpx 26rpx;
+  background: #241f1d;
+  color: #ffffff;
+}
+
+.hero-main,
+.hero-side {
+  min-width: 0;
+}
+
+.hero-value {
+  display: block;
+  font-size: 56rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.hero-label,
+.hero-note {
+  display: block;
+  margin-top: 8rpx;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 23rpx;
+}
+
+.hero-side {
+  text-align: right;
+}
+
+.hero-money {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.metric-strip {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 14rpx;
+}
+
+.metric-card {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 18rpx 16rpx;
+  background: rgba(255, 252, 248, 0.82);
+}
+
+.metric-value {
+  display: block;
+  font-size: 29rpx;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metric-label {
+  display: block;
+  margin-top: 6rpx;
+  color: #9a8b83;
+  font-size: 21rpx;
+}
+
+.stats-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 24rpx;
+}
+
+.stats-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88rpx;
+  height: 48rpx;
+  padding: 0 20rpx;
+  border: 1rpx solid #daccc4;
+  border-radius: 999rpx;
+  background: rgba(255, 252, 248, 0.78);
+  color: #5f514a;
+  font-size: 23rpx;
+  font-weight: 600;
+}
+
+.stats-tab.active {
+  border-color: #241f1d;
+  background: #241f1d;
+  color: #ffffff;
+}
+
+.tab-panel {
+  margin-top: 22rpx;
+}
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -51,6 +152,46 @@
   background: rgba(255, 252, 248, 0.82);
 }
 
+.list-card,
+.backup-card,
+.insight-card {
+  padding: 28rpx 24rpx;
+  background: rgba(255, 252, 248, 0.82);
+}
+
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14rpx;
+  margin-top: 18rpx;
+}
+
+.health-value,
+.health-label {
+  display: block;
+  text-align: center;
+}
+
+.health-value {
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.health-label {
+  margin-top: 6rpx;
+  color: #9a8b83;
+  font-size: 21rpx;
+}
+
+.health-tip {
+  margin-top: 20rpx;
+  padding: 16rpx 18rpx;
+  border-radius: 8rpx;
+  background: #f1e7e1;
+  color: #5f514a;
+  font-size: 24rpx;
+}
+
 .block-title {
   margin-bottom: 16rpx;
   font-size: 30rpx;
@@ -81,6 +222,157 @@
   background: #8b3f37;
 }
 
+.season-bar {
+  background: #6f7d4f;
+}
+
+.occasion-bar {
+  background: #2f6f73;
+}
+
 .count {
   text-align: right;
+}
+
+.rank-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #eadfd8;
+}
+
+.rank-row:last-child {
+  border-bottom: 0;
+}
+
+.rank-main {
+  min-width: 0;
+}
+
+.rank-name,
+.rank-meta {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rank-name {
+  color: #2a2421;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.rank-meta {
+  margin-top: 6rpx;
+  color: #9a8b83;
+  font-size: 22rpx;
+}
+
+.rank-value {
+  flex: 0 0 auto;
+  color: #8b3f37;
+  font-size: 25rpx;
+  font-weight: 700;
+}
+
+.backup-text {
+  margin-top: -4rpx;
+  color: #8b7d75;
+  font-size: 25rpx;
+  line-height: 1.5;
+}
+
+.backup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 12rpx;
+  margin-top: 20rpx;
+  padding: 10rpx;
+  border: 1rpx solid #eadfd8;
+  border-radius: 12rpx;
+  background: #f7eee9;
+}
+
+.import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12rpx;
+  margin-top: 20rpx;
+}
+
+.backup-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 132rpx;
+  width: auto;
+  height: 52rpx;
+  border: 1rpx solid transparent;
+  border-radius: 999rpx;
+  background: #fffaf6;
+  color: #5f514a;
+  font-size: 23rpx;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0;
+  padding: 0 24rpx;
+}
+
+.backup-button.primary {
+  border-color: #241f1d;
+  background: #241f1d;
+  color: #ffffff;
+}
+
+.backup-button::after {
+  border: 0;
+}
+
+.empty-card {
+  padding: 42rpx 24rpx;
+  color: #9a8b83;
+  font-size: 25rpx;
+  text-align: center;
+}
+
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(36, 31, 29, 0.35);
+}
+
+.import-panel {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 30rpx 24rpx 42rpx;
+  border-radius: 24rpx 24rpx 0 0;
+  background: #fffaf6;
+}
+
+.import-title {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.backup-input {
+  width: 100%;
+  height: 280rpx;
+  box-sizing: border-box;
+  margin-top: 20rpx;
+  padding: 20rpx;
+  border: 1rpx solid #e8ded6;
+  border-radius: 10rpx;
+  background: #ffffff;
+  color: #2a2421;
+  font-size: 24rpx;
+  line-height: 1.45;
 }

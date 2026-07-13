@@ -12,6 +12,20 @@ Page({
     keyword: '',
     items: [],
     filteredItems: [],
+    insights: {
+      currentSeason: '',
+      recentItems: [],
+      staleItems: [],
+      weeklyItems: [],
+      todayRecordCount: 0
+    },
+    batchMode: false,
+    selectedItemIds: [],
+    batchCategories: [],
+    batchOccasions: [],
+    idleAlertDays: wardrobe.IDLE_ALERT_DAYS,
+    showBatchCategoryPanel: false,
+    showBatchOccasionPanel: false,
     summary: {
       totalCount: 0,
       totalPrice: 0,
@@ -27,8 +41,11 @@ Page({
     this.loadItems()
   },
 
+  noop() {},
+
   loadItems() {
-    const items = wardrobe.getItems()
+    const rawItems = wardrobe.getItems()
+    const items = rawItems.map(wardrobe.enrichItemForDisplay)
     const categories = wardrobe.getCategories(items)
     const activeCategory = categories.includes(this.data.activeCategory) ? this.data.activeCategory : '全部'
     const categoryView = this.buildCategoryView(categories, this.data.showAllCategories)
@@ -39,6 +56,9 @@ Page({
       categoryToggleText: categoryView.toggleText,
       activeCategory,
       items,
+      insights: wardrobe.getHomeInsights(items),
+      batchCategories: wardrobe.getFormCategories(),
+      batchOccasions: wardrobe.getOccasions(),
       summary: wardrobe.summarize(items)
     })
     this.applyFilters()
@@ -57,9 +77,21 @@ Page({
     const keyword = this.data.keyword.trim().toLowerCase()
     const filteredItems = this.data.items.filter((item) => {
       const matchCategory = this.data.activeCategory === '全部' || item.category === this.data.activeCategory
-      const matchKeyword = !keyword || item.name.toLowerCase().includes(keyword)
+      const searchText = [
+        item.name,
+        item.category,
+        item.color,
+        item.status,
+        item.note,
+        ...(Array.isArray(item.seasons) ? item.seasons : []),
+        ...(Array.isArray(item.occasions) ? item.occasions : [])
+      ].filter(Boolean).join(' ').toLowerCase()
+      const matchKeyword = !keyword || searchText.includes(keyword)
       return matchCategory && matchKeyword
-    })
+    }).map((item) => ({
+      ...item,
+      selected: this.data.selectedItemIds.includes(item.id)
+    }))
     this.setData({ filteredItems })
   },
 
@@ -87,6 +119,126 @@ Page({
   goAdd() {
     wx.switchTab({
       url: '/pages/add/add'
+    })
+  },
+
+  openWearCalendar() {
+    wx.navigateTo({
+      url: '/pages/wear-calendar/wear-calendar'
+    })
+  },
+
+  enterBatchMode() {
+    this.setData({
+      batchMode: true,
+      selectedItemIds: []
+    })
+    this.applyFilters()
+  },
+
+  exitBatchMode() {
+    this.setData({
+      batchMode: false,
+      selectedItemIds: [],
+      showBatchCategoryPanel: false,
+      showBatchOccasionPanel: false
+    })
+    this.applyFilters()
+  },
+
+  handleItemTap(event) {
+    if (this.data.batchMode) {
+      this.toggleItemSelection(event)
+      return
+    }
+    this.goDetail(event)
+  },
+
+  toggleItemSelection(event) {
+    const id = event.currentTarget.dataset.id
+    const selectedItemIds = this.data.selectedItemIds.includes(id)
+      ? this.data.selectedItemIds.filter((itemId) => itemId !== id)
+      : [...this.data.selectedItemIds, id]
+    this.setData({ selectedItemIds })
+    this.applyFilters()
+  },
+
+  selectAllFiltered() {
+    this.setData({
+      selectedItemIds: Array.from(new Set([
+        ...this.data.selectedItemIds,
+        ...this.data.filteredItems.map((item) => item.id)
+      ]))
+    })
+    this.applyFilters()
+  },
+
+  openBatchCategoryPanel() {
+    if (!this.data.selectedItemIds.length) {
+      wx.showToast({ title: '先选择衣物', icon: 'none' })
+      return
+    }
+    this.setData({ showBatchCategoryPanel: true })
+  },
+
+  closeBatchCategoryPanel() {
+    this.setData({ showBatchCategoryPanel: false })
+  },
+
+  applyBatchCategory(event) {
+    const result = wardrobe.batchUpdateCategory(this.data.selectedItemIds, event.currentTarget.dataset.category)
+    if (!result.ok) {
+      wx.showToast({ title: result.message, icon: 'none' })
+      return
+    }
+    wx.showToast({ title: '已修改分类', icon: 'success' })
+    this.exitBatchMode()
+    this.loadItems()
+  },
+
+  openBatchOccasionPanel() {
+    if (!this.data.selectedItemIds.length) {
+      wx.showToast({ title: '先选择衣物', icon: 'none' })
+      return
+    }
+    this.setData({ showBatchOccasionPanel: true })
+  },
+
+  closeBatchOccasionPanel() {
+    this.setData({ showBatchOccasionPanel: false })
+  },
+
+  applyBatchOccasion(event) {
+    const result = wardrobe.batchAddOccasions(this.data.selectedItemIds, [event.currentTarget.dataset.occasion])
+    if (!result.ok) {
+      wx.showToast({ title: result.message, icon: 'none' })
+      return
+    }
+    wx.showToast({ title: '已添加场合', icon: 'success' })
+    this.exitBatchMode()
+    this.loadItems()
+  },
+
+  confirmBatchDelete() {
+    if (!this.data.selectedItemIds.length) {
+      wx.showToast({ title: '先选择衣物', icon: 'none' })
+      return
+    }
+    wx.showModal({
+      title: '批量删除',
+      content: `确定删除选中的 ${this.data.selectedItemIds.length} 件衣物吗？`,
+      confirmColor: '#7b3b32',
+      success: (res) => {
+        if (!res.confirm) return
+        const result = wardrobe.batchDeleteItems(this.data.selectedItemIds)
+        if (!result.ok) {
+          wx.showToast({ title: result.message, icon: 'none' })
+          return
+        }
+        wx.showToast({ title: '已删除', icon: 'success' })
+        this.exitBatchMode()
+        this.loadItems()
+      }
     })
   },
 

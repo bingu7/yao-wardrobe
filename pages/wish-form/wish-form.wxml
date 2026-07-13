@@ -2,7 +2,7 @@
   <view class="form-head">
     <button class="back-button" bindtap="goBack">返回</button>
     <view>
-      <view class="title">添加愿望</view>
+      <view class="title">{{isEditing ? '编辑愿望' : '添加愿望'}}</view>
       <view class="subtitle">想买之前先记下来，看看能不能搭上已有衣物</view>
     </view>
   </view>
@@ -49,7 +49,7 @@
     </view>
   </view>
 
-  <button class="primary-button save-button" bindtap="saveWish">保存愿望</button>
+  <button class="primary-button save-button" bindtap="saveWish">{{isEditing ? '保存修改' : '保存愿望'}}</button>
 
   <view wx:if="{{showCategoryPanel}}" class="panel-mask" catchtap="closeCategoryPanel">
     <view class="category-panel" catchtap="noop">
