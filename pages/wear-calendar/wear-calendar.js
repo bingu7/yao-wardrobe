@@ -6,12 +6,14 @@ Page({
     days: [],
     itemOptions: [],
     selectedItems: [],
-    todayCount: 0
+    todayCount: 0,
+    today: ''
   },
 
   onShow() {
-    const selectedDate = this.data.selectedDate || wardrobe.formatLocalDate(new Date())
-    this.setData({ selectedDate })
+    const today = wardrobe.formatLocalDate(new Date())
+    const selectedDate = this.data.selectedDate && this.data.selectedDate <= today ? this.data.selectedDate : today
+    this.setData({ selectedDate, today })
     this.loadData(selectedDate)
   },
 
@@ -48,6 +50,11 @@ Page({
       item.id === id ? { ...item, selected: !item.selected } : item
     ))
     this.setData({ itemOptions })
+  },
+
+  onImageError(event) {
+    const { id, imageUrl } = event.currentTarget.dataset
+    if (wardrobe.clearItemImage(id, imageUrl)) this.loadData(this.data.selectedDate)
   },
 
   saveRecord() {

@@ -47,7 +47,7 @@ Page({
     return {
       visibleOccasionFilters: showAll || !canToggle ? occasionFilters : occasionFilters.slice(0, OCCASION_VISIBLE_LIMIT),
       canToggle,
-      toggleText: showAll ? '收起' : `展开 ${occasionFilters.length - OCCASION_VISIBLE_LIMIT} 个`
+      toggleText: canToggle ? (showAll ? '收起' : `展开 ${occasionFilters.length - OCCASION_VISIBLE_LIMIT} 个`) : ''
     }
   },
 
@@ -90,6 +90,11 @@ Page({
   clearFilters() {
     this.setData({ keyword: '', activeOccasion: '全部' })
     this.applyFilters()
+  },
+
+  onImageError(event) {
+    const { id, imageUrl } = event.currentTarget.dataset
+    if (wardrobe.clearItemImage(id, imageUrl)) this.loadData()
   },
 
   goAdd() {

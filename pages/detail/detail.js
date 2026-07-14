@@ -43,6 +43,48 @@ Page({
     })
   },
 
+  onImageError() {
+    if (this.data.item && wardrobe.clearItemImage(this.data.id, this.data.item.imageUrl)) {
+      this.loadItem()
+    }
+  },
+
+  exportImage() {
+    const filePath = this.data.item && this.data.item.imageUrl
+    if (!filePath) {
+      wx.showToast({ title: '当前衣物没有图片', icon: 'none' })
+      return
+    }
+    if (typeof wx.showShareImageMenu === 'function') {
+      wx.showShareImageMenu({
+        path: filePath,
+        fail: (error) => {
+          if (!(error && error.errMsg && error.errMsg.includes('cancel'))) {
+            wx.showModal({
+              title: '导出图片失败',
+              content: `${(error && error.errMsg) || '微信未能打开图片菜单'}。请在真机微信中重试。`,
+              showCancel: false
+            })
+          }
+        }
+      })
+      return
+    }
+    if (typeof wx.saveImageToPhotosAlbum === 'function') {
+      wx.saveImageToPhotosAlbum({
+        filePath,
+        success: () => wx.showToast({ title: '图片已保存', icon: 'success' }),
+        fail: (error) => wx.showModal({
+          title: '保存图片失败',
+          content: (error && error.errMsg) || '请检查相册权限后重试',
+          showCancel: false
+        })
+      })
+      return
+    }
+    wx.showModal({ title: '当前环境不支持', content: '请在手机微信中导出图片。', showCancel: false })
+  },
+
   editItem() {
     wx.setStorageSync('wardrobeEditingId', this.data.id)
     wx.switchTab({

@@ -252,6 +252,18 @@ Page({
     })
   },
 
+  onImageError() {
+    const imageUrl = this.data.form.imageUrl
+    if (imageUrl === this.pendingImageUrl) {
+      wardrobe.removeImageFile(imageUrl)
+      this.pendingImageUrl = ''
+    } else if (this.data.form.id) {
+      wardrobe.clearItemImage(this.data.form.id, imageUrl)
+      this.originalImageUrl = ''
+    }
+    this.setData({ 'form.imageUrl': '' })
+  },
+
   cleanupPendingImage() {
     if (this.pendingImageUrl && this.pendingImageUrl !== this.originalImageUrl) {
       wardrobe.removeImageFile(this.pendingImageUrl)

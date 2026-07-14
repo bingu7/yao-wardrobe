@@ -94,6 +94,41 @@
   border-color: #2f241f;
 }
 
+.backup-ready {
+  margin-top: 24rpx;
+  padding: 20rpx;
+  border: 1rpx solid #eadfd7;
+  border-radius: 8rpx;
+  background: #fbf7f3;
+}
+
+.backup-ready-title {
+  color: #3c312d;
+  font-size: 25rpx;
+  font-weight: 700;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.devtools-notice,
+.backup-action-message {
+  margin-top: 16rpx;
+  padding: 16rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.devtools-notice {
+  color: #7b3b32;
+  background: #fbf1ed;
+}
+
+.backup-action-message {
+  color: #6e5b54;
+  background: #f2ebe5;
+}
+
 .link-row {
   display: flex;
   align-items: center;

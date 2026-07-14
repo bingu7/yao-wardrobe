@@ -2,7 +2,7 @@
   <view class="form-title">{{isEditing ? '编辑衣物' : '添加衣物'}}</view>
 
   <view class="upload card" bindtap="chooseImage" aria-label="添加衣物图片，可选">
-    <image wx:if="{{form.imageUrl}}" class="upload-image" src="{{form.imageUrl}}" mode="aspectFill" />
+    <image wx:if="{{form.imageUrl}}" class="upload-image" src="{{form.imageUrl}}" mode="aspectFill" binderror="onImageError" />
     <button wx:if="{{form.imageUrl}}" class="remove-image" catchtap="removeImage">移除</button>
     <view wx:else class="upload-empty">
       <view class="upload-plus">+</view>

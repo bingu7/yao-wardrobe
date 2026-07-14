@@ -5,7 +5,7 @@
       <view class="title">愿望清单</view>
       <view class="subtitle">先记录想买的衣服，再看它能不能搭上已有衣物</view>
     </view>
-    <button class="add-btn" bindtap="goAdd">+ 添加</button>
+    <view class="add-btn" role="button" aria-label="添加愿望" bindtap="goAdd">＋ 添加</view>
   </view>
 
   <view class="search-row">
@@ -14,40 +14,44 @@
 
   <view class="filter-wrap">
     <view class="filter-row">
-      <button
+      <view
         wx:for="{{visibleCategories}}"
         wx:key="*this"
         class="filter-pill {{activeCategory === item ? 'active' : ''}}"
+        role="button"
         data-category="{{item}}"
         bindtap="setCategory"
         aria-label="按{{item}}筛选"
       >
         {{item}}
-      </button>
+      </view>
     </view>
-    <button wx:if="{{canToggleCategories}}" class="filter-toggle" bindtap="toggleCategories">{{categoryToggleText}}</button>
+    <view wx:if="{{canToggleCategories}}" class="filter-toggle" role="button" bindtap="toggleCategories">{{categoryToggleText}}</view>
   </view>
 
   <view wx:if="{{filteredWishlist.length}}" class="section">
     <view wx:for="{{filteredWishlist}}" wx:key="id" class="wish-card card" aria-label="愿望{{item.name}}">
-      <view class="wish-image">
-        <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
-        <view wx:else class="wish-placeholder">{{item.category}}</view>
-      </view>
-      <view class="wish-info">
-        <view class="wish-head">
-          <view>
-            <view class="wish-name">{{item.name}}</view>
-            <view class="muted">{{item.category}}</view>
-          </view>
-          <view wx:if="{{item.expectedPrice}}" class="wish-price">¥{{item.expectedPrice}}</view>
+      <view class="wish-main">
+        <view class="wish-image">
+          <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" data-id="{{item.id}}" data-image-url="{{item.imageUrl}}" binderror="onImageError" />
+          <view wx:else class="wish-placeholder">{{item.category}}</view>
         </view>
-        <view wx:if="{{item.matchItem}}" class="match-text">可搭：{{item.matchItem.name}}</view>
-        <view wx:if="{{item.note}}" class="wish-note">{{item.note}}</view>
-         <view class="wish-actions">
-           <button class="purchase-mini" data-id="{{item.id}}" bindtap="purchaseWish">已购买，加入衣橱</button>
-           <button class="delete-mini" data-id="{{item.id}}" bindtap="deleteWish">删除</button>
-         </view>
+        <view class="wish-info">
+          <view class="wish-head">
+            <view class="wish-title-group">
+              <view class="wish-name">{{item.name}}</view>
+              <view class="muted">{{item.category}}</view>
+            </view>
+            <view wx:if="{{item.expectedPrice}}" class="wish-price">¥{{item.expectedPrice}}</view>
+          </view>
+          <view wx:if="{{item.matchItem}}" class="match-text">可搭：{{item.matchItem.name}}</view>
+          <view wx:if="{{item.note}}" class="wish-note">{{item.note}}</view>
+        </view>
+      </view>
+      <view class="wish-actions">
+        <view class="edit-mini" role="button" aria-label="编辑{{item.name}}" data-id="{{item.id}}" bindtap="editWish">编辑</view>
+        <view class="purchase-mini" role="button" aria-label="将{{item.name}}加入衣橱" data-id="{{item.id}}" bindtap="convertWish">加入衣橱</view>
+        <view class="delete-mini" role="button" aria-label="删除{{item.name}}" data-id="{{item.id}}" bindtap="deleteWish">删除</view>
       </view>
     </view>
   </view>

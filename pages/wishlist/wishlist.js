@@ -54,7 +54,7 @@ Page({
     return {
       visibleCategories: showAll || !canToggle ? categories : categories.slice(0, CATEGORY_VISIBLE_LIMIT),
       canToggle,
-      toggleText: showAll ? '收起' : `展开 ${categories.length - CATEGORY_VISIBLE_LIMIT} 个`
+      toggleText: canToggle ? (showAll ? '收起' : `展开 ${categories.length - CATEGORY_VISIBLE_LIMIT} 个`) : ''
     }
   },
 
@@ -100,6 +100,11 @@ Page({
     this.applyFilters()
   },
 
+  onImageError(event) {
+    const { id, imageUrl } = event.currentTarget.dataset
+    if (wardrobe.clearWishlistImage(id, imageUrl)) this.loadData()
+  },
+
   goAdd() {
     wx.navigateTo({
       url: '/pages/wish-form/wish-form'
@@ -123,7 +128,7 @@ Page({
         if (!res.confirm) {
           return
         }
-        const result = wardrobe.convertWishlistToItem(id)
+        const result = wardrobe.purchaseWishlistItem(id)
         if (!result.ok) {
           wx.showToast({ title: result.message, icon: 'none' })
           return
@@ -147,15 +152,5 @@ Page({
         }
       }
     })
-  },
-
-  purchaseWish(event) {
-    const result = wardrobe.purchaseWishlistItem(event.currentTarget.dataset.id)
-    if (!result.ok) {
-      wx.showToast({ title: result.message, icon: 'none' })
-      return
-    }
-    this.loadData()
-    wx.showToast({ title: '已加入衣橱', icon: 'success' })
   }
 })

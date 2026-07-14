@@ -24,13 +24,14 @@ function buildPieceData(items, allCategories, selectedCategory, selectedItemId) 
   }
 }
 
-function buildCategoryPanelItems(categories, customCategories, selectedCategory) {
+function getWardrobeCategories(items) {
+  return wardrobe.getCategories(items).filter((category) => category !== '全部')
+}
+
+function buildCategoryPanelItems(categories, selectedCategory) {
   return categories.map((name, index) => ({
     name,
-    draftName: name,
     selected: name === selectedCategory,
-    canMoveUp: index > 0,
-    canMoveDown: index < categories.length - 1,
     sortIndex: index
   }))
 }
@@ -52,8 +53,6 @@ Page({
     showCategoryPanel: false,
     editingPieceIndex: -1,
     categoryPanelItems: [],
-    isCategoryEditing: false,
-    customCategory: '',
     isEditing: false
   },
 
@@ -85,7 +84,7 @@ Page({
       return
     }
     const items = wardrobe.getItems()
-    const allCategories = wardrobe.getFormCategories()
+    const allCategories = getWardrobeCategories(items)
     const occasionIndex = outfit.occasion ? Math.max(0, this.data.occasionOptions.indexOf(outfit.occasion)) : 0
     
     // 构建 pieces
@@ -128,7 +127,7 @@ Page({
 
   loadOptions() {
     const items = wardrobe.getItems()
-    const allCategories = wardrobe.getFormCategories()
+    const allCategories = getWardrobeCategories(items)
     const occasionOptions = ['不选择', ...wardrobe.getOccasions()]
     this.setData({
       categoryOptions: allCategories,
@@ -186,32 +185,24 @@ Page({
 
   openCategoryPanel(event) {
     const index = Number(event.currentTarget.dataset.index)
-    const categories = wardrobe.getFormCategories()
-    const customCategories = wardrobe.getCustomCategories()
+    const categories = getWardrobeCategories(wardrobe.getItems())
     const selectedCategory = this.data.pieces[index] ? this.data.pieces[index].categoryName : ''
     this.setData({
+      categoryOptions: categories,
       editingPieceIndex: index,
       showCategoryPanel: true,
-      isCategoryEditing: false,
-      customCategory: '',
-      categoryPanelItems: buildCategoryPanelItems(categories, customCategories, selectedCategory)
+      categoryPanelItems: buildCategoryPanelItems(categories, selectedCategory)
     })
   },
 
   closeCategoryPanel() {
     this.setData({
       showCategoryPanel: false,
-      isCategoryEditing: false,
       editingPieceIndex: -1
     })
   },
 
-  toggleCategoryEditing() {
-    this.setData({ isCategoryEditing: !this.data.isCategoryEditing })
-  },
-
   selectCategoryFromPanel(event) {
-    if (this.data.isCategoryEditing) return
     const category = event.currentTarget.dataset.category
     const index = this.data.editingPieceIndex
     if (index < 0) return
@@ -224,105 +215,6 @@ Page({
       pieces,
       showCategoryPanel: false,
       editingPieceIndex: -1
-    })
-  },
-
-  onCustomCategoryInput(event) {
-    this.setData({ customCategory: event.detail.value })
-  },
-
-  addCustomCategory() {
-    const result = wardrobe.addCustomCategory(this.data.customCategory)
-    if (!result.ok) {
-      wx.showToast({ title: result.message, icon: 'none' })
-      return
-    }
-    const categories = wardrobe.getFormCategories()
-    const customCategories = wardrobe.getCustomCategories()
-    this.setData({
-      categoryOptions: categories,
-      customCategory: '',
-      showCategoryPanel: true,
-      categoryPanelItems: buildCategoryPanelItems(categories, customCategories, result.category)
-    })
-    // 如果编辑的 piece 存在，自动选中新分类
-    const index = this.data.editingPieceIndex
-    if (index >= 0) {
-      const items = wardrobe.getItems()
-      const pieces = this.data.pieces.map((p, i) =>
-        i === index ? buildPieceData(items, categories, result.category) : p
-      )
-      this.setData({ pieces })
-    }
-    wx.showToast({ title: '已添加分类', icon: 'success' })
-  },
-
-  onCategoryDraftInput(event) {
-    const index = Number(event.currentTarget.dataset.index)
-    this.setData({ [`categoryPanelItems[${index}].draftName`]: event.detail.value })
-  },
-
-  renameCategoryFromPanel(event) {
-    const index = Number(event.currentTarget.dataset.index)
-    const item = this.data.categoryPanelItems[index]
-    if (!item) return
-    const result = wardrobe.renameCustomCategory(item.name, item.draftName)
-    if (!result.ok) {
-      wx.showToast({ title: result.message, icon: 'none' })
-      return
-    }
-    const categories = wardrobe.getFormCategories()
-    const items = wardrobe.getItems()
-    const pieces = this.data.pieces.map((piece) => (
-      piece.categoryName === item.name
-        ? buildPieceData(items, categories, result.category, piece.itemId)
-        : piece
-    ))
-    this.setData({
-      categoryOptions: categories,
-      pieces,
-      categoryPanelItems: buildCategoryPanelItems(categories, wardrobe.getCustomCategories(), result.category)
-    })
-    wx.showToast({ title: '已更新分类', icon: 'success' })
-  },
-
-  moveCategoryFromPanel(event) {
-    const category = event.currentTarget.dataset.category
-    const direction = Number(event.currentTarget.dataset.direction)
-    const result = wardrobe.moveCustomCategory(category, direction)
-    if (!result.ok) {
-      wx.showToast({ title: result.message, icon: 'none' })
-      return
-    }
-    const categories = wardrobe.getFormCategories()
-    this.setData({
-      categoryOptions: categories,
-      categoryPanelItems: buildCategoryPanelItems(categories, wardrobe.getCustomCategories(),
-        this.data.pieces[this.data.editingPieceIndex]?.categoryName || '')
-    })
-  },
-
-  deleteCustomCategory(event) {
-    const category = event.currentTarget.dataset.category
-    wx.showModal({
-      title: '删除分类',
-      content: `确定删除"${category}"吗？已保存衣物不会被删除。`,
-      confirmColor: '#7b3b32',
-      success: (res) => {
-        if (!res.confirm) return
-        wardrobe.deleteCustomCategory(category)
-        const categories = wardrobe.getFormCategories()
-        const pieces = this.data.pieces.map((p) =>
-          p.categoryName === category ? buildPieceData(wardrobe.getItems(), categories, '') : p
-        )
-        this.setData({
-          categoryOptions: categories,
-          pieces,
-          showCategoryPanel: true,
-          categoryPanelItems: buildCategoryPanelItems(categories, wardrobe.getCustomCategories(),
-            this.data.pieces[this.data.editingPieceIndex]?.categoryName || '')
-        })
-      }
     })
   },
 

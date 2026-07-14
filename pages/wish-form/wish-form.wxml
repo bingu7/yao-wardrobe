@@ -9,7 +9,7 @@
 
   <view class="wish-form card section">
     <view class="upload" bindtap="chooseImage">
-      <image wx:if="{{form.imageUrl}}" class="upload-image" src="{{form.imageUrl}}" mode="aspectFill" />
+      <image wx:if="{{form.imageUrl}}" class="upload-image" src="{{form.imageUrl}}" mode="aspectFill" binderror="onImageError" />
       <button wx:if="{{form.imageUrl}}" class="remove-image" catchtap="removeImage">移除</button>
       <view wx:else class="upload-empty">
         <view class="upload-plus">+</view>

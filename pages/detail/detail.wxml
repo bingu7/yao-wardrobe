@@ -1,6 +1,6 @@
 <view class="page" wx:if="{{item}}">
   <view class="detail-image card">
-    <image wx:if="{{item.imageUrl}}" class="image" src="{{item.imageUrl}}" mode="aspectFill" />
+    <image wx:if="{{item.imageUrl}}" class="image" src="{{item.imageUrl}}" mode="aspectFill" binderror="onImageError" />
     <view wx:else class="image-placeholder">{{item.category}}</view>
   </view>
 
@@ -63,6 +63,7 @@
   </view>
 
   <view class="actions">
+    <button wx:if="{{item.imageUrl}}" class="ghost-button" bindtap="exportImage" aria-label="导出衣物图片">导出图片</button>
     <button class="ghost-button" bindtap="editItem" aria-label="编辑衣物">编辑</button>
     <button class="delete-button" bindtap="confirmDelete" aria-label="删除衣物">删除</button>
   </view>
