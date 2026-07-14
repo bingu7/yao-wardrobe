@@ -8,7 +8,7 @@
       <view class="card-label">今天已记录</view>
       <view class="today-count">{{todayCount}} 件</view>
     </view>
-    <picker mode="date" value="{{selectedDate}}" bindchange="onDateChange">
+    <picker mode="date" value="{{selectedDate}}" end="{{today}}" bindchange="onDateChange">
       <view class="date-button">{{selectedDate}}</view>
     </picker>
   </view>
@@ -48,7 +48,7 @@
       bindtap="toggleItem"
     >
       <view class="option-image">
-        <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
+        <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" data-id="{{item.id}}" data-image-url="{{item.imageUrl}}" binderror="onImageError" />
         <view wx:else class="option-placeholder">{{item.category}}</view>
       </view>
       <view class="option-body">

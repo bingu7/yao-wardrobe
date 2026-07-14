@@ -2,9 +2,9 @@
 node_modules/
 miniprogram_npm/
 
-# 项目私有配置（含 AppID 等敏感信息）
+# 本机项目配置
+project.config.json
 project.private.config.json
-
 # 编辑器/IDE
 .vscode/
 .idea/

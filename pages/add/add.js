@@ -69,6 +69,8 @@ Page({
 
   hasVisited: false,
   isPickingImage: false,
+  originalImageUrl: '',
+  pendingImageUrl: '',
 
   onShow() {
     this.refreshCategories()
@@ -91,6 +93,8 @@ Page({
     }
 
     this.hasVisited = true
+    this.cleanupPendingImage()
+    this.originalImageUrl = ''
     this.setData({
       isEditing: false,
       form: emptyForm(),
@@ -143,6 +147,8 @@ Page({
       return
     }
 
+    this.cleanupPendingImage()
+    this.originalImageUrl = item.imageUrl || ''
     const categories = wardrobe.getFormCategories()
     this.setData({
       isEditing: true,
@@ -202,7 +208,7 @@ Page({
 
   chooseImage() {
     this.isPickingImage = true
-    const oldImageUrl = this.data.form.imageUrl
+    const previousPendingImageUrl = this.pendingImageUrl
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
@@ -211,13 +217,20 @@ Page({
         const tempPath = res.tempFiles[0].tempFilePath
         // 保存到持久化存储，这样关闭小程序后图片不会丢失
         wardrobe.persistImage(tempPath).then((savedPath) => {
-          // 替换图片时清理旧的持久化文件
-          if (oldImageUrl && oldImageUrl !== savedPath) {
-            wardrobe.removeImageFile(oldImageUrl)
+          if (previousPendingImageUrl && previousPendingImageUrl !== savedPath) {
+            wardrobe.removeImageFile(previousPendingImageUrl)
           }
+          this.pendingImageUrl = savedPath
+          this.isPickingImage = false
           this.setData({
             'form.imageUrl': savedPath,
             'errors.imageUrl': ''
+          })
+        }).catch(() => {
+          this.isPickingImage = false
+          wx.showToast({
+            title: '图片保存失败，请重试',
+            icon: 'none'
           })
         })
       },
@@ -229,11 +242,37 @@ Page({
 
   removeImage() {
     const oldUrl = this.data.form.imageUrl
-    wardrobe.removeImageFile(oldUrl)
+    if (oldUrl && oldUrl === this.pendingImageUrl) {
+      wardrobe.removeImageFile(oldUrl)
+      this.pendingImageUrl = ''
+    }
     this.setData({
       'form.imageUrl': '',
-      'errors.imageUrl': '请上传衣物图片'
+      'errors.imageUrl': ''
     })
+  },
+
+  onImageError() {
+    const imageUrl = this.data.form.imageUrl
+    if (imageUrl === this.pendingImageUrl) {
+      wardrobe.removeImageFile(imageUrl)
+      this.pendingImageUrl = ''
+    } else if (this.data.form.id) {
+      wardrobe.clearItemImage(this.data.form.id, imageUrl)
+      this.originalImageUrl = ''
+    }
+    this.setData({ 'form.imageUrl': '' })
+  },
+
+  cleanupPendingImage() {
+    if (this.pendingImageUrl && this.pendingImageUrl !== this.originalImageUrl) {
+      wardrobe.removeImageFile(this.pendingImageUrl)
+    }
+    this.pendingImageUrl = ''
+  },
+
+  onUnload() {
+    this.cleanupPendingImage()
   },
 
   onInput(event) {
@@ -608,9 +647,6 @@ Page({
     const errors = emptyErrors()
     const priceText = String(form.price).trim()
 
-    if (!form.imageUrl) {
-      errors.imageUrl = '请上传衣物图片'
-    }
     if (!form.name.trim()) {
       errors.name = '请填写衣物名字'
     }
@@ -649,6 +685,11 @@ Page({
       name: form.name.trim(),
       price: form.price === '' ? '' : Number(Number(form.price).toFixed(2))
     })
+    if (wasEditing && this.originalImageUrl && this.originalImageUrl !== form.imageUrl) {
+      wardrobe.removeImageFile(this.originalImageUrl)
+    }
+    this.originalImageUrl = ''
+    this.pendingImageUrl = ''
 
     wx.showToast({
       title: '已保存',

@@ -1,5 +1,5 @@
 const wardrobe = require('../../utils/wardrobe')
-const CATEGORY_VISIBLE_LIMIT = 2
+const CATEGORY_VISIBLE_LIMIT = 5
 
 Page({
   data: {
@@ -11,7 +11,8 @@ Page({
     categoryToggleText: '',
     canToggleCategories: false,
     wishlist: [],
-    filteredWishlist: []
+    filteredWishlist: [],
+    isFiltering: false
   },
 
   onLoad() {
@@ -53,7 +54,7 @@ Page({
     return {
       visibleCategories: showAll || !canToggle ? categories : categories.slice(0, CATEGORY_VISIBLE_LIMIT),
       canToggle,
-      toggleText: showAll ? '收起' : `展开 ${categories.length - CATEGORY_VISIBLE_LIMIT} 个`
+      toggleText: canToggle ? (showAll ? '收起' : `展开 ${categories.length - CATEGORY_VISIBLE_LIMIT} 个`) : ''
     }
   },
 
@@ -67,7 +68,10 @@ Page({
       return matchKeyword && matchCategory
     })
 
-    this.setData({ filteredWishlist })
+    this.setData({
+      filteredWishlist,
+      isFiltering: Boolean(keyword || this.data.activeCategory !== '全部')
+    })
   },
 
   onSearch(event) {
@@ -89,6 +93,16 @@ Page({
       canToggleCategories: categoryView.canToggle,
       categoryToggleText: categoryView.toggleText
     })
+  },
+
+  clearFilters() {
+    this.setData({ keyword: '', activeCategory: '全部' })
+    this.applyFilters()
+  },
+
+  onImageError(event) {
+    const { id, imageUrl } = event.currentTarget.dataset
+    if (wardrobe.clearWishlistImage(id, imageUrl)) this.loadData()
   },
 
   goAdd() {
@@ -114,7 +128,7 @@ Page({
         if (!res.confirm) {
           return
         }
-        const result = wardrobe.convertWishlistToItem(id)
+        const result = wardrobe.purchaseWishlistItem(id)
         if (!result.ok) {
           wx.showToast({ title: result.message, icon: 'none' })
           return

@@ -15,7 +15,7 @@
 
     <view class="field">
       <text class="label">场合</text>
-      <view class="picker-value category-trigger" bindtap="openOccasionPanel">
+      <view class="picker-value category-trigger" bindtap="openOccasionPanel" aria-label="选择穿搭场合">
         <text>{{occasionLabel}}</text>
         <text class="trigger-arrow">›</text>
       </view>
@@ -36,7 +36,7 @@
 
       <view class="field">
         <text class="label">选择分类</text>
-        <view class="picker-value category-trigger" data-index="{{index}}" bindtap="openCategoryPanel">
+        <view class="picker-value category-trigger" data-index="{{index}}" bindtap="openCategoryPanel" aria-label="选择第{{index}}件衣物分类">
           <text>{{item.categoryName || '选择分类'}}</text>
           <text class="trigger-arrow">›</text>
         </view>
@@ -44,7 +44,7 @@
 
       <view class="field">
         <text class="label">选择衣物</text>
-        <view class="picker-value category-trigger" data-index="{{index}}" bindtap="openItemPanel">
+        <view class="picker-value category-trigger" data-index="{{index}}" bindtap="openItemPanel" aria-label="选择第{{index}}件衣物">
           <text>{{item.displayName}}</text>
           <text class="trigger-arrow">›</text>
         </view>
@@ -65,47 +65,25 @@
   <view wx:if="{{showCategoryPanel}}" class="panel-mask" catchtap="closeCategoryPanel">
     <view class="category-panel" catchtap="noop">
       <view class="panel-head">
-        <view class="panel-actions">
-          <button class="panel-action" bindtap="toggleCategoryEditing">{{isCategoryEditing ? '完成' : '编辑'}}</button>
+        <view class="panel-title">选择衣橱分类</view>
+        <view class="panel-actions single">
           <button class="panel-close" bindtap="closeCategoryPanel">关闭</button>
         </view>
       </view>
 
-      <view wx:if="{{!isCategoryEditing}}" class="category-grid">
+      <view wx:if="{{categoryPanelItems.length}}" class="category-grid">
         <view
           wx:for="{{categoryPanelItems}}"
           wx:key="name"
           class="category-chip {{item.selected ? 'selected' : ''}}"
           data-category="{{item.name}}"
           bindtap="selectCategoryFromPanel"
-          bindlongpress="toggleCategoryEditing"
+          aria-label="选择分类{{item.name}}"
         >
           {{item.name}}
         </view>
       </view>
-
-      <view wx:else class="category-edit-list">
-        <view wx:for="{{categoryPanelItems}}" wx:key="name" class="category-edit-card">
-          <button class="delete-x" data-category="{{item.name}}" catchtap="deleteCustomCategory">×</button>
-          <input
-            class="category-edit-input"
-            value="{{item.draftName}}"
-            data-index="{{index}}"
-            bindinput="onCategoryDraftInput"
-            maxlength="10"
-          />
-          <view class="category-card-actions">
-            <button class="mini-button save-mini" data-index="{{index}}" bindtap="renameCategoryFromPanel">保存</button>
-            <button class="mini-button" disabled="{{!item.canMoveUp}}" data-category="{{item.name}}" data-direction="-1" bindtap="moveCategoryFromPanel">上移</button>
-            <button class="mini-button" disabled="{{!item.canMoveDown}}" data-category="{{item.name}}" data-direction="1" bindtap="moveCategoryFromPanel">下移</button>
-          </view>
-        </view>
-      </view>
-
-      <view class="panel-add">
-        <input class="custom-input" placeholder="没有合适的？输入新种类" value="{{customCategory}}" bindinput="onCustomCategoryInput" maxlength="10" />
-        <button class="custom-button" bindtap="addCustomCategory">添加</button>
-      </view>
+      <view wx:else class="panel-empty">衣橱里还没有衣物，请先添加衣物</view>
     </view>
   </view>
 
@@ -147,6 +125,7 @@
           data-id="{{item.id}}"
           data-name="{{item.name}}"
           bindtap="selectItem"
+          aria-label="选择衣物{{item.name}}"
         >
           <view class="match-name">{{item.name}}</view>
         </view>

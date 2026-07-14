@@ -8,7 +8,9 @@
     "pages/wishlist/wishlist",
     "pages/wish-form/wish-form",
     "pages/detail/detail",
-    "pages/stats/stats"
+    "pages/stats/stats",
+    "pages/settings/settings",
+    "pages/legal/legal"
   ],
   "window": {
     "navigationBarTitleText": "我的衣橱",

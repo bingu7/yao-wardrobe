@@ -1,0 +1,78 @@
+<view class="page">
+  <view class="eyebrow">SETTINGS</view>
+  <view class="title">设置与关于</view>
+  <view class="subtitle">上线前的数据说明、备份恢复和隐私入口都放在这里。</view>
+
+  <view class="section card">
+    <view class="block-title">数据存储说明</view>
+    <view class="paragraph">当前版本不使用服务器账号体系。衣物、穿搭、愿望、购买价格、备注和穿着记录主要保存在本机微信小程序缓存中。</view>
+    <view class="notice">换手机、清理微信缓存或卸载小程序可能导致本地数据丢失。建议定期导出完整备份文件。</view>
+  </view>
+
+  <view class="section card">
+    <view class="block-title">数据备份与恢复</view>
+    <view class="paragraph">JSON 备份会包含衣物和愿望图片内容，恢复时会重新写入本机并正常显示。图片较多时建议优先导出文件；旧版无图片备份仍可导入。</view>
+    <view class="action-row">
+      <view class="action" bindtap="copyBackup">复制完整备份</view>
+      <view class="action primary generate-backup-action" bindtap="exportBackupFile">生成备份文件</view>
+      <view class="action" bindtap="openImportPanel">粘贴备份内容</view>
+      <view class="action" bindtap="importBackupFile">导入备份文件</view>
+    </view>
+    <view wx:if="{{backupFileReady}}" class="backup-ready">
+      <view class="backup-ready-title">完整备份已生成：{{backupFileName}}</view>
+      <view class="hint">请再点击一次分享；这一步必须由你直接点击，微信才允许发送文件。</view>
+      <view wx:if="{{isDevtools}}" class="devtools-notice">当前是开发者工具：文件分享只能用真机预览测试；保存到电脑只能在 Windows 或 Mac 版微信客户端中使用。</view>
+      <view class="action-row">
+        <view class="action primary share-backup-action" bindtap="sharePreparedBackupFile">{{isDevtools ? '真机中分享备份' : '分享备份文件'}}</view>
+        <view class="action copy-generated-action" bindtap="copyPreparedBackup">复制已生成备份</view>
+        <view wx:if="{{canSaveToDisk}}" class="action save-to-disk-action" bindtap="savePreparedBackupToDisk">保存到电脑</view>
+      </view>
+      <view wx:if="{{backupActionMessage}}" class="backup-action-message">{{backupActionMessage}}</view>
+    </view>
+  </view>
+
+  <view class="section card">
+    <view class="block-title">图片直接导出</view>
+    <view class="paragraph">将衣物和愿望中的原图逐张保存到手机系统相册，不依赖备份文件分享。重复使用可能在相册中产生重复图片。</view>
+    <view class="action-row">
+      <view class="action primary export-images-action" bindtap="exportAllImages">保存全部图片到相册</view>
+    </view>
+  </view>
+
+  <view class="section card">
+    <view class="block-title">隐私与协议</view>
+    <view class="link-row" bindtap="openPrivacy">
+      <text>隐私政策</text>
+      <text class="chevron">›</text>
+    </view>
+    <view class="link-row" bindtap="openAgreement">
+      <text>用户协议</text>
+      <text class="chevron">›</text>
+    </view>
+  </view>
+
+  <view class="section card">
+    <view class="block-title">备案信息</view>
+    <view class="paragraph">备案号：待备案后填写</view>
+    <view class="hint">正式发布前，在微信公众平台完成小程序备案后，将备案号补到这里。</view>
+  </view>
+
+  <view class="danger-section card">
+    <view>
+      <view class="block-title">清空本地数据</view>
+      <view class="paragraph">用于重新开始使用。清空前请确认已经导出完整备份。</view>
+    </view>
+    <view class="danger-action" bindtap="clearAllData">清空</view>
+  </view>
+
+  <view wx:if="{{showImportPanel}}" class="modal-mask" bindtap="closeImportPanel">
+    <view class="import-panel" catchtap="noop">
+      <view class="import-title">粘贴备份内容</view>
+      <textarea class="backup-input" placeholder="粘贴 JSON 备份内容" value="{{backupText}}" bindinput="onBackupInput" maxlength="-1"></textarea>
+      <view class="action-row">
+        <view class="action" bindtap="closeImportPanel">取消</view>
+        <view class="action primary" bindtap="confirmImport">导入</view>
+      </view>
+    </view>
+  </view>
+</view>

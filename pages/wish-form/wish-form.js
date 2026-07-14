@@ -33,6 +33,9 @@ Page({
     showMatchPanel: false
   },
 
+  pendingImageUrl: '',
+  originalImageUrl: '',
+
   onLoad() {
     this.loadOptions()
   },
@@ -86,6 +89,8 @@ Page({
       })
       return
     }
+    this.cleanupPendingImage()
+    this.originalImageUrl = wish.imageUrl || ''
     const categories = wardrobe.getFormCategories()
     const matchOptions = [{ id: '', name: '不选择已有衣物' }, ...wardrobe.getItems()]
     const matchIndex = Math.max(0, matchOptions.findIndex((item) => item.id === wish.matchItemId))
@@ -108,7 +113,7 @@ Page({
   noop() {},
 
   chooseImage() {
-    const oldImageUrl = this.data.form.imageUrl
+    const previousPendingImageUrl = this.pendingImageUrl
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
@@ -116,11 +121,17 @@ Page({
       success: (res) => {
         const tempPath = res.tempFiles[0].tempFilePath
         wardrobe.persistImage(tempPath).then((savedPath) => {
-          if (oldImageUrl && oldImageUrl !== savedPath) {
-            wardrobe.removeImageFile(oldImageUrl)
+          if (previousPendingImageUrl && previousPendingImageUrl !== savedPath) {
+            wardrobe.removeImageFile(previousPendingImageUrl)
           }
+          this.pendingImageUrl = savedPath
           this.setData({
             'form.imageUrl': savedPath
+          })
+        }).catch(() => {
+          wx.showToast({
+            title: '图片保存失败，请重试',
+            icon: 'none'
           })
         })
       }
@@ -129,10 +140,36 @@ Page({
 
   removeImage() {
     const oldUrl = this.data.form.imageUrl
-    wardrobe.removeImageFile(oldUrl)
+    if (oldUrl && oldUrl === this.pendingImageUrl) {
+      wardrobe.removeImageFile(oldUrl)
+      this.pendingImageUrl = ''
+    }
     this.setData({
       'form.imageUrl': ''
     })
+  },
+
+  onImageError() {
+    const imageUrl = this.data.form.imageUrl
+    if (imageUrl === this.pendingImageUrl) {
+      wardrobe.removeImageFile(imageUrl)
+      this.pendingImageUrl = ''
+    } else if (this.data.form.id) {
+      wardrobe.clearWishlistImage(this.data.form.id, imageUrl)
+      this.originalImageUrl = ''
+    }
+    this.setData({ 'form.imageUrl': '' })
+  },
+
+  cleanupPendingImage() {
+    if (this.pendingImageUrl) {
+      wardrobe.removeImageFile(this.pendingImageUrl)
+      this.pendingImageUrl = ''
+    }
+  },
+
+  onUnload() {
+    this.cleanupPendingImage()
   },
 
   onInput(event) {
@@ -357,6 +394,11 @@ Page({
       expectedPrice: priceText === '' ? '' : Number(Number(priceText).toFixed(2)),
       note: form.note.trim()
     })
+    if (this.data.isEditing && this.originalImageUrl && this.originalImageUrl !== form.imageUrl) {
+      wardrobe.removeImageFile(this.originalImageUrl)
+    }
+    this.originalImageUrl = ''
+    this.pendingImageUrl = ''
 
     wx.showToast({
       title: this.data.isEditing ? '已更新愿望' : '已加入愿望清单',

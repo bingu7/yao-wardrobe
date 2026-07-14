@@ -1,0 +1,9 @@
+<view class="page">
+  <view class="title">{{title}}</view>
+  <view class="subtitle">以下内容用于开发版和正式提审前说明，发布前可根据实际备案和功能再微调。</view>
+
+  <view wx:for="{{sections}}" wx:key="title" class="section card">
+    <view class="block-title">{{item.title}}</view>
+    <view class="paragraph">{{item.body}}</view>
+  </view>
+</view>

@@ -5,7 +5,7 @@
       <view class="title">我的衣橱</view>
       <view class="subtitle">把喜欢的裙子和衣服都收好</view>
     </view>
-    <button class="add-btn" bindtap="goAdd">+ 添加</button>
+    <view class="add-btn" role="button" aria-label="添加衣物" bindtap="goAdd">＋ 添加</view>
   </view>
 
   <view class="overview">
@@ -44,7 +44,7 @@
         bindtap="goDetail"
       >
         <view class="mini-image">
-          <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
+          <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" data-id="{{item.id}}" data-image-url="{{item.imageUrl}}" binderror="onImageError" />
           <view wx:else class="mini-placeholder">{{item.category}}</view>
         </view>
         <view class="mini-name">{{item.name}}</view>
@@ -55,8 +55,8 @@
 
   <view class="insight-section" wx:if="{{insights.staleItems.length}}">
     <view class="section-head">
-      <view class="section-title">很久没穿</view>
-      <view class="section-note">超过 {{idleAlertDays}} 天或未记录会提示</view>
+      <view class="section-title">久未穿着</view>
+      <view class="section-note">超过 {{idleAlertDays}} 天未穿，或暂未记录穿着</view>
     </view>
     <scroll-view class="insight-scroll" scroll-x>
       <view
@@ -67,7 +67,7 @@
         bindtap="goDetail"
       >
         <view class="mini-image">
-          <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
+          <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" data-id="{{item.id}}" data-image-url="{{item.imageUrl}}" binderror="onImageError" />
           <view wx:else class="mini-placeholder">{{item.category}}</view>
         </view>
         <view class="mini-name">{{item.name}}</view>
@@ -90,7 +90,7 @@
         bindtap="goDetail"
       >
         <view class="mini-image">
-          <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
+          <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" data-id="{{item.id}}" data-image-url="{{item.imageUrl}}" binderror="onImageError" />
           <view wx:else class="mini-placeholder">{{item.category}}</view>
         </view>
         <view class="mini-name">{{item.name}}</view>
@@ -103,8 +103,9 @@
     <input class="search-input" placeholder="搜索名字、颜色、备注或场合" value="{{keyword}}" bindinput="onSearch" />
   </view>
 
-  <view wx:if="{{!batchMode}}" class="batch-row">
-    <button class="batch-button" bindtap="enterBatchMode">批量管理</button>
+  <view wx:if="{{!batchMode}}" class="filter-head">
+    <view class="filter-label">按分类浏览</view>
+    <view class="batch-button" role="button" aria-label="批量管理衣物" bindtap="enterBatchMode">批量管理</view>
   </view>
 
   <view wx:if="{{batchMode}}" class="batch-toolbar card">
@@ -125,17 +126,19 @@
 
   <view class="category-filter">
     <view class="category-row">
-      <button
+      <view
         wx:for="{{visibleCategories}}"
         wx:key="*this"
         class="category-pill {{activeCategory === item ? 'active' : ''}}"
+        role="button"
+        aria-label="按{{item}}筛选"
         data-category="{{item}}"
         bindtap="setCategory"
       >
         {{item}}
-      </button>
+      </view>
     </view>
-    <button wx:if="{{canToggleCategories}}" class="category-toggle" bindtap="toggleCategories">{{categoryToggleText}}</button>
+    <view wx:if="{{canToggleCategories}}" class="category-toggle" role="button" bindtap="toggleCategories">{{categoryToggleText}}</view>
   </view>
 
   <view wx:if="{{filteredItems.length}}" class="grid section">
@@ -147,10 +150,9 @@
       bindtap="handleItemTap"
     >
       <view class="image-wrap">
-        <image wx:if="{{item.imageUrl}}" class="item-image" src="{{item.imageUrl}}" mode="aspectFill" />
+        <image wx:if="{{item.imageUrl}}" class="item-image" src="{{item.imageUrl}}" mode="aspectFill" data-id="{{item.id}}" data-image-url="{{item.imageUrl}}" binderror="onImageError" />
         <view wx:else class="image-placeholder">{{item.category}}</view>
         <view wx:if="{{batchMode}}" class="select-mark {{item.selected ? 'active' : ''}}">{{item.selected ? '✓' : ''}}</view>
-        <view wx:if="{{item.statusHint}}" class="status-hint">{{item.statusHint}}</view>
       </view>
       <view class="item-body">
         <view class="item-name">{{item.name}}</view>
