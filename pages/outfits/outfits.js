@@ -103,6 +103,12 @@ Page({
     })
   },
 
+  openPlanCalendar() {
+    wx.navigateTo({
+      url: '/pages/outfit-plan/outfit-plan'
+    })
+  },
+
   deleteOutfit(event) {
     const id = event.currentTarget.dataset.id
     wx.showModal({

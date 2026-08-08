@@ -395,7 +395,7 @@ Page({
       note: form.note.trim()
     })
     if (this.data.isEditing && this.originalImageUrl && this.originalImageUrl !== form.imageUrl) {
-      wardrobe.removeImageFile(this.originalImageUrl)
+      wardrobe.removeImageFileIfUnused(this.originalImageUrl)
     }
     this.originalImageUrl = ''
     this.pendingImageUrl = ''

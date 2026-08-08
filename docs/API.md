@@ -8,7 +8,7 @@
 
 本文档覆盖三类开发接口：
 
-1. [`utils/wardrobe.js`](../utils/wardrobe.js) 通过 CommonJS 导出的 64 个成员（5 个常量、59 个函数）；
+1. [`utils/wardrobe.js`](../utils/wardrobe.js) 通过 CommonJS 导出的 70 个成员（5 个常量、65 个函数）；
 2. 页面之间的路由和临时存储约定；
 3. 项目实际依赖的微信小程序运行时 API。
 
@@ -119,7 +119,22 @@ interface HydratedOutfitPiece extends OutfitPiece {
 
 读取穿搭时会自动把旧版 `topId`、`bottomId`、`shoesId`、`bagId`、`accessoryId` 字段迁移成 `pieces`。
 
-### 4.3 WishlistItem
+### 4.3 OutfitPlan
+
+```ts
+interface OutfitPlan {
+  outfitId: string
+  note: string
+  createdAt: string
+  updatedAt: string
+}
+
+type OutfitPlans = Record<string, OutfitPlan> // 键为 YYYY-MM-DD
+```
+
+计划和实际穿着记录相互独立；只有调用 `markOutfitPlanWorn()` 后，计划内衣物才会写入穿着日志。
+
+### 4.4 WishlistItem
 
 ```ts
 interface WishlistItem {
@@ -135,14 +150,14 @@ interface WishlistItem {
 }
 ```
 
-### 4.4 WearLogs
+### 4.5 WearLogs
 
 ```ts
 type WearLogs = Record<string, string[]>
 // 键：YYYY-MM-DD；值：当天穿过的衣物 ID，接口层会去重并移除空 ID。
 ```
 
-### 4.5 BackupData
+### 4.6 BackupData
 
 ```ts
 interface BackupData {
@@ -152,6 +167,7 @@ interface BackupData {
   outfits: Outfit[]
   wishlist: Array<WishlistItem & { imageRef?: string }>
   wearLogs: WearLogs
+  outfitPlans?: OutfitPlans
   categories: string[]
   occasions: string[]
   images?: Record<string, { extension: string; data: string }>
@@ -243,6 +259,13 @@ interface CategoryPanelItem {
 - 返回：`void`
 - 空路径直接返回；查询或删除失败不会向调用方报告。
 
+### `removeImageFileIfUnused(filePath)`
+
+仅当衣物和愿望清单都不再引用该路径时删除持久图片，适合在记录删除或图片替换完成后清理旧文件。
+
+- 参数：`filePath: string`
+- 返回：`boolean`，已发起删除时为 `true`，空路径或仍被引用时为 `false`
+
 ### `clearItemImage(id, imageUrl?)` / `clearWishlistImage(id, imageUrl?)`
 
 在图片加载失败时清空对应记录的 `imageUrl` 并删除失效文件。可选的 `imageUrl` 用于避免旧的加载失败事件误删刚更新的图片；成功返回 `true`，记录不存在或路径已变化时返回 `false`。
@@ -297,8 +320,13 @@ interface WearCalendarDay {
 | `upsertOutfit(outfit)` | `string` | 无 `id` 时创建；有 `id` 时更新。返回新 ID 或传入 ID，并维护时间戳。 |
 | `deleteOutfit(id)` | `void` | 删除同 ID 穿搭；不存在时无操作。 |
 | `hydrateOutfit(outfit, items)` | `Outfit & { pieces: HydratedOutfitPiece[] }` | 用显式传入的衣物数组补全每个 piece 的对象、图片和名称。 |
+| `getOutfitPlans()` | `OutfitPlans` | 读取计划并移除无效日期或已删除穿搭的引用。 |
+| `getOutfitPlan(dateText)` | `OutfitPlan \| null` | 读取指定日期的计划；日期无效或没有计划时返回 `null`。 |
+| `setOutfitPlan(dateText, outfitId, note?)` | `OperationResult<{ date: string; plan: OutfitPlan }>` | 为日期新增或覆盖一套穿搭计划。 |
+| `deleteOutfitPlan(dateText)` | `OperationResult<{ date: string; changed: boolean }>` | 删除指定日期的计划。 |
+| `markOutfitPlanWorn(dateText)` | `OperationResult<{ outfitId: string; addedCount: number }>` | 把计划内仍有效的衣物合并进当天穿着记录；未来日期会被拒绝。 |
 
-与衣物接口一致，给 `upsertOutfit()` 传入不存在的 `id` 会按该 ID 创建记录。
+与衣物接口一致，给 `upsertOutfit()` 传入不存在的 `id` 会按该 ID 创建记录。删除穿搭时，对应的日期计划会同步清理。
 
 ## 13. 愿望清单 API
 
@@ -468,6 +496,7 @@ interface WardrobeSummary {
 | `/pages/stats/stats` | Tab | 统计和设置入口 |
 | `/pages/detail/detail?id=<itemId>` | 普通页 | URL 查询参数 `id` 必填 |
 | `/pages/outfit-form/outfit-form` | 普通页 | 编辑用 `outfitEditingId`；复制用 `outfitCopyData` |
+| `/pages/outfit-plan/outfit-plan` | 普通页 | 穿搭计划月历，无参数 |
 | `/pages/wear-calendar/wear-calendar` | 普通页 | 无参数 |
 | `/pages/wish-form/wish-form` | 普通页 | 编辑用 `wishlistEditingId` |
 | `/pages/settings/settings` | 普通页 | 数据说明、完整备份恢复、隐私协议和清空数据 |
@@ -481,6 +510,7 @@ interface WardrobeSummary {
 | --- | --- | --- |
 | `privateWardrobeItems` | `WardrobeItem[]` | 衣物 |
 | `privateWardrobeOutfits` | `Outfit[]` | 穿搭 |
+| `privateWardrobeOutfitPlans` | `OutfitPlans` | 按日期保存穿搭计划 |
 | `privateWardrobeWishlist` | `WishlistItem[]` | 愿望 |
 | `privateWardrobeWearLogs` | `WearLogs` | 按日期记录穿着 |
 | `privateWardrobeCustomCategories` | `string[]` | 分类及顺序 |

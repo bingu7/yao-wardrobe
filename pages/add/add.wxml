@@ -54,15 +54,17 @@
     <view class="field">
       <text class="label">场合标签</text>
       <view class="chip-row wrap">
-        <button
+        <view
           wx:for="{{visibleOccasionOptions}}"
           wx:key="name"
           class="chip occasion-chip {{item.selected ? 'active' : ''}}"
+          role="button"
+          aria-label="{{item.selected ? '取消选择' : '选择'}}场合{{item.name}}"
           data-occasion="{{item.name}}"
           bindtap="toggleOccasion"
         >
           {{item.name}}
-        </button>
+        </view>
       </view>
       <button wx:if="{{hiddenOccasionOptionCount}}" class="occasion-toggle" bindtap="toggleOccasionOptions">{{occasionOptionToggleText}}</button>
       <view class="custom-category compact">

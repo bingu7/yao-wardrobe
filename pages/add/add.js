@@ -686,7 +686,7 @@ Page({
       price: form.price === '' ? '' : Number(Number(form.price).toFixed(2))
     })
     if (wasEditing && this.originalImageUrl && this.originalImageUrl !== form.imageUrl) {
-      wardrobe.removeImageFile(this.originalImageUrl)
+      wardrobe.removeImageFileIfUnused(this.originalImageUrl)
     }
     this.originalImageUrl = ''
     this.pendingImageUrl = ''

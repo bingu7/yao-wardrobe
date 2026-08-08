@@ -1,0 +1,83 @@
+<view class="page">
+  <view class="eyebrow">OUTFIT PLANNER</view>
+  <view class="title">穿搭计划日历</view>
+  <view class="subtitle">提前安排每天穿什么，实际穿着后再同步到统计</view>
+
+  <view class="calendar-card card section">
+    <view class="month-head">
+      <view class="month-arrow" role="button" aria-label="上个月" data-offset="-1" bindtap="changeMonth">‹</view>
+      <picker mode="date" value="{{selectedDate}}" bindchange="onDateChange">
+        <view class="month-title">{{monthTitle}}</view>
+      </picker>
+      <view class="month-arrow" role="button" aria-label="下个月" data-offset="1" bindtap="changeMonth">›</view>
+    </view>
+    <view class="weekday-row">
+      <text wx:for="{{weekdays}}" wx:key="*this">{{item}}</text>
+    </view>
+    <view class="calendar-grid">
+      <view
+        wx:for="{{calendarDays}}"
+        wx:key="key"
+        class="calendar-day {{item.selected ? 'selected' : ''}} {{item.isToday ? 'today' : ''}} {{item.inMonth ? '' : 'blank'}}"
+        role="button"
+        aria-label="{{item.date || '空白日期'}}{{item.hasPlan ? '已有计划' : ''}}"
+        data-date="{{item.date}}"
+        bindtap="selectDay"
+      >
+        <text wx:if="{{item.inMonth}}" class="day-number">{{item.day}}</text>
+        <view wx:if="{{item.hasPlan}}" class="plan-dot"></view>
+      </view>
+    </view>
+    <view class="calendar-summary">共安排 {{plannedCount}} 天 · 圆点表示已有计划</view>
+  </view>
+
+  <view class="editor-card card section">
+    <view class="editor-head">
+      <view>
+        <view class="block-title">{{selectedDate}}</view>
+        <view class="block-subtitle">{{selectedPlan ? '当天已安排穿搭' : '选择一套穿搭加入计划'}}</view>
+      </view>
+      <view wx:if="{{selectedPlan}}" class="remove-link" role="button" bindtap="removePlan">取消计划</view>
+    </view>
+
+    <picker wx:if="{{outfitOptions.length > 1}}" range="{{outfitOptions}}" range-key="name" value="{{selectedOutfitIndex}}" bindchange="onOutfitChange">
+      <view class="outfit-picker">{{outfitOptions[selectedOutfitIndex].name}} <text>⌄</text></view>
+    </picker>
+    <view wx:else class="empty-outfits">
+      <text>还没有可安排的穿搭</text>
+      <view class="create-link" role="button" bindtap="goAddOutfit">先去创建</view>
+    </view>
+
+    <textarea
+      wx:if="{{outfitOptions.length > 1}}"
+      class="note-input"
+      maxlength="80"
+      placeholder="备注，例如：上午开会，晚上聚餐"
+      value="{{note}}"
+      bindinput="onNoteInput"
+    />
+    <button wx:if="{{outfitOptions.length > 1}}" class="primary-button save-button" bindtap="savePlan">保存这天的计划</button>
+  </view>
+
+  <view wx:if="{{selectedPlan}}" class="plan-card card section">
+    <view class="plan-head">
+      <view>
+        <view class="plan-name">{{selectedPlan.outfit.name}}</view>
+        <view class="muted">{{selectedPlan.outfit.occasion || '未设置场合'}}</view>
+      </view>
+      <view class="piece-count">{{selectedPlan.outfit.pieces.length}} 件</view>
+    </view>
+    <view class="piece-grid">
+      <view wx:for="{{selectedPlan.outfit.pieces}}" wx:key="itemId" class="piece">
+        <view class="piece-image">
+          <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" data-id="{{item.itemId}}" data-image-url="{{item.imageUrl}}" binderror="onImageError" />
+          <view wx:else class="piece-placeholder">{{item.category}}</view>
+        </view>
+        <view class="piece-name">{{item.name}}</view>
+      </view>
+    </view>
+    <view wx:if="{{selectedPlan.note}}" class="plan-note">{{selectedPlan.note}}</view>
+    <button wx:if="{{canMarkWorn}}" class="wear-button" bindtap="markWorn">这天穿了这套</button>
+    <view wx:else class="future-tip">到当天或之后，才能计入实际穿着记录</view>
+  </view>
+</view>

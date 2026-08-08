@@ -1,0 +1,265 @@
+.eyebrow {
+  padding-top: 8rpx;
+  color: #8b3f37;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+.title {
+  margin-top: 12rpx;
+  font-size: 48rpx;
+  font-weight: 700;
+  line-height: 1.12;
+}
+
+.subtitle {
+  margin-top: 8rpx;
+  color: #6b5a52;
+  font-size: 25rpx;
+  line-height: 1.5;
+}
+
+.calendar-card,
+.editor-card,
+.plan-card {
+  padding: 24rpx;
+  background: rgba(255, 252, 248, 0.88);
+}
+
+.month-head,
+.editor-head,
+.plan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.month-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58rpx;
+  height: 58rpx;
+  border: 1rpx solid #daccc4;
+  border-radius: 999rpx;
+  color: #5f514a;
+  font-size: 42rpx;
+  line-height: 1;
+}
+
+.month-title {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.weekday-row,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.weekday-row {
+  margin-top: 24rpx;
+  color: #9a8b83;
+  font-size: 21rpx;
+  text-align: center;
+}
+
+.calendar-grid {
+  gap: 8rpx;
+  margin-top: 12rpx;
+}
+
+.calendar-day {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 68rpx;
+  border: 1rpx solid transparent;
+  border-radius: 10rpx;
+  color: #403733;
+}
+
+.calendar-day.today {
+  border-color: #c9aaa0;
+}
+
+.calendar-day.selected {
+  border-color: #241f1d;
+  background: #241f1d;
+  color: #ffffff;
+}
+
+.calendar-day.blank {
+  pointer-events: none;
+}
+
+.day-number {
+  font-size: 24rpx;
+}
+
+.plan-dot {
+  position: absolute;
+  left: 50%;
+  bottom: 7rpx;
+  width: 7rpx;
+  height: 7rpx;
+  border-radius: 50%;
+  background: #b55b50;
+  transform: translateX(-50%);
+}
+
+.calendar-day.selected .plan-dot {
+  background: #ffffff;
+}
+
+.calendar-summary {
+  margin-top: 18rpx;
+  color: #9a8b83;
+  font-size: 21rpx;
+  text-align: center;
+}
+
+.editor-head,
+.plan-head {
+  align-items: flex-start;
+}
+
+.block-title,
+.plan-name {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.block-subtitle {
+  margin-top: 6rpx;
+  color: #9a8b83;
+  font-size: 23rpx;
+}
+
+.remove-link,
+.create-link {
+  color: #8b3f37;
+  font-size: 23rpx;
+}
+
+.outfit-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 76rpx;
+  margin-top: 22rpx;
+  border: 1rpx solid #daccc4;
+  border-radius: 10rpx;
+  padding: 0 22rpx;
+  font-size: 26rpx;
+}
+
+.note-input {
+  width: 100%;
+  height: 132rpx;
+  margin-top: 16rpx;
+  border: 1rpx solid #e1d4cc;
+  border-radius: 10rpx;
+  background: #fffaf6;
+  padding: 18rpx 20rpx;
+  font-size: 25rpx;
+}
+
+.save-button {
+  margin-top: 18rpx;
+}
+
+.empty-outfits {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 22rpx;
+  padding: 22rpx;
+  border-radius: 10rpx;
+  background: #f4ebe5;
+  color: #6b5a52;
+  font-size: 25rpx;
+}
+
+.piece-count {
+  flex: 0 0 auto;
+  color: #8b3f37;
+  font-size: 23rpx;
+}
+
+.piece-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  margin-top: 22rpx;
+}
+
+.piece {
+  width: 112rpx;
+}
+
+.piece-image {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 10rpx;
+  background: #efe3dc;
+  overflow: hidden;
+}
+
+.piece-image image,
+.piece-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.piece-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b5a52;
+  font-size: 20rpx;
+  text-align: center;
+}
+
+.piece-name {
+  margin-top: 8rpx;
+  color: #5f514a;
+  font-size: 20rpx;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plan-note {
+  margin-top: 18rpx;
+  padding: 16rpx;
+  border-radius: 8rpx;
+  background: #f5ece7;
+  color: #5f514a;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.wear-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 76rpx;
+  margin-top: 20rpx;
+  border-radius: 10rpx;
+  background: #8b3f37;
+  color: #ffffff;
+  font-size: 26rpx;
+  padding: 0;
+}
+
+.future-tip {
+  margin-top: 20rpx;
+  color: #9a8b83;
+  font-size: 22rpx;
+  text-align: center;
+}

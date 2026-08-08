@@ -10,6 +10,15 @@
   min-width: 0;
 }
 
+.hero-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12rpx;
+  margin-top: 8rpx;
+}
+
 .eyebrow {
   color: #8b3f37;
   font-size: 20rpx;
@@ -45,8 +54,23 @@
   font-size: 23rpx;
   font-weight: 600;
   line-height: 1;
-  margin: 8rpx 0 0;
+  margin: 0;
   padding: 0 22rpx;
+}
+
+.plan-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 132rpx;
+  height: 56rpx;
+  border: 1rpx solid #d7c8bf;
+  border-radius: 999rpx;
+  background: rgba(255, 252, 248, 0.84);
+  color: #5f514a;
+  font-size: 22rpx;
+  line-height: 1;
+  padding: 0 18rpx;
 }
 
 .search-row {

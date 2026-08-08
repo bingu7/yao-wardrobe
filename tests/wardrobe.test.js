@@ -205,6 +205,53 @@ async function run() {
   assert.strictEqual(wardrobe.getOutfit(dedupedId).pieces.length, 1)
 
   resetStorage()
+  setItems([
+    { id: 'plan-top', name: '计划上衣', category: '上衣' },
+    { id: 'plan-bottom', name: '计划下装', category: '下装' }
+  ])
+  store.set('privateWardrobeOutfits', [{
+    id: 'plan-outfit',
+    name: '通勤计划',
+    pieces: [
+      { category: '上衣', itemId: 'plan-top' },
+      { category: '下装', itemId: 'plan-bottom' }
+    ]
+  }])
+  assert.strictEqual(wardrobe.setOutfitPlan('2026-02-30', 'plan-outfit').ok, false)
+  assert.strictEqual(wardrobe.setOutfitPlan('2026-07-12', 'missing-outfit').ok, false)
+  assert.strictEqual(wardrobe.setOutfitPlan('2026-07-12', 'plan-outfit', '上班').ok, true)
+  assert.strictEqual(wardrobe.getOutfitPlan('2026-07-12').note, '上班')
+  assert.strictEqual(wardrobe.markOutfitPlanWorn('2026-07-12').addedCount, 2)
+  assert.deepStrictEqual(wardrobe.getWearLog('2026-07-12'), ['plan-top', 'plan-bottom'])
+  assert.strictEqual(wardrobe.markOutfitPlanWorn('2026-07-12').changed, false)
+  const planBackup = wardrobe.exportData()
+  resetStorage()
+  assert.strictEqual(wardrobe.importData(planBackup).ok, true)
+  assert.strictEqual(wardrobe.getOutfitPlan('2026-07-12').outfitId, 'plan-outfit')
+  wardrobe.deleteOutfit('plan-outfit')
+  assert.strictEqual(wardrobe.getOutfitPlan('2026-07-12'), null)
+
+  resetStorage()
+  setItems([{ id: 'shared-item', name: '共享图片衣物', imageUrl: 'saved://old' }])
+  store.set('privateWardrobeWishlist', [
+    { id: 'shared-wish', name: '共享图片愿望', imageUrl: 'saved://old' }
+  ])
+  wardrobe.deleteWishlistItem('shared-wish')
+  assert.deepStrictEqual(removedFiles, [])
+  assert.strictEqual(wardrobe.clearItemImage('shared-item', 'saved://old'), true)
+  assert.deepStrictEqual(removedFiles, ['saved://old'])
+
+  resetStorage()
+  setItems([{ id: 'shared-item', name: '共享图片衣物', imageUrl: 'saved://old' }])
+  store.set('privateWardrobeWishlist', [
+    { id: 'shared-wish', name: '共享图片愿望', imageUrl: 'saved://old' }
+  ])
+  assert.strictEqual(wardrobe.clearWishlistImage('shared-wish', 'saved://old'), true)
+  assert.deepStrictEqual(removedFiles, [])
+  wardrobe.deleteItem('shared-item')
+  assert.deepStrictEqual(removedFiles, ['saved://old'])
+
+  resetStorage()
   setItems([{ id: 'existing', name: '已有衣物', category: '上衣', price: 10 }])
   wardrobe.addWishlistItem({ name: '待购买', category: '鞋子', expectedPrice: 99, imageUrl: '', note: '' })
   const wishId = wardrobe.getWishlist()[0].id
@@ -497,6 +544,36 @@ async function run() {
   wishPage.saveWish()
   assert.deepStrictEqual(removedFiles, ['saved://old'])
   assert.strictEqual(wardrobe.getWishlistItem('wish-image').imageUrl, 'saved://temp-new')
+
+  let outfitPlanPage
+  global.Page = (config) => {
+    outfitPlanPage = config
+  }
+  delete require.cache[require.resolve('../pages/outfit-plan/outfit-plan')]
+  require('../pages/outfit-plan/outfit-plan')
+  resetStorage()
+  setItems([{ id: 'calendar-item', name: '日历衣物', category: '上衣' }])
+  store.set('privateWardrobeOutfits', [{
+    id: 'calendar-outfit',
+    name: '日历穿搭',
+    pieces: [{ category: '上衣', itemId: 'calendar-item' }]
+  }])
+  const planPage = {
+    ...outfitPlanPage,
+    data: JSON.parse(JSON.stringify(outfitPlanPage.data)),
+    setData(updates) {
+      Object.assign(this.data, updates)
+    }
+  }
+  planPage.onShow()
+  assert.strictEqual(planPage.data.calendarDays.length, 42)
+  assert.strictEqual(planPage.data.outfitOptions.length, 2)
+  planPage.onOutfitChange({ detail: { value: '1' } })
+  planPage.savePlan()
+  assert.strictEqual(wardrobe.getOutfitPlan(planPage.data.today).outfitId, 'calendar-outfit')
+  assert.strictEqual(planPage.data.selectedPlan.outfit.name, '日历穿搭')
+  planPage.markWorn()
+  assert.deepStrictEqual(wardrobe.getWearLog(planPage.data.today), ['calendar-item'])
 
   console.log('wardrobe tests passed')
 }

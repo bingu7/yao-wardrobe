@@ -1,0 +1,24 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  test:
+    name: Run all tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run all test files
+        run: |
+          set -e
+          for f in tests/*.test.js; do
+            echo "== $f =="
+            node "$f"
+          done
+          echo "✅ all tests passed"
