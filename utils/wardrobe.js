@@ -361,7 +361,7 @@ function persistImage(tempFilePath) {
 
 /** 删除持久化的图片文件，避免堆积占用存储空间 */
 function removeImageFile(filePath) {
-  if (!filePath) return
+  if (!filePath || typeof filePath !== 'string') return
   const userDataPath = wx.env && wx.env.USER_DATA_PATH
   if (userDataPath && filePath.indexOf(`${userDataPath}/`) === 0) {
     wx.getFileSystemManager().unlink({ filePath, fail() {} })
@@ -470,7 +470,8 @@ function deleteItems(ids) {
   ))
   const wearLogs = getWearLogs()
   const nextWearLogs = Object.keys(wearLogs).reduce((logs, date) => {
-    logs[date] = normalizeIdList(wearLogs[date]).filter((id) => !itemIds.has(id))
+    const next = normalizeIdList(wearLogs[date]).filter((id) => !itemIds.has(id))
+    if (next.length) logs[date] = next
     return logs
   }, {})
   saveItems(nextItems)
@@ -535,7 +536,11 @@ function setWearLog(dateText, itemIds) {
   if (nextIds.some((id) => !existingIds.has(id))) {
     return { ok: false, message: '记录中包含不存在的衣物' }
   }
-  logs[date] = nextIds
+  if (nextIds.length) {
+    logs[date] = nextIds
+  } else {
+    delete logs[date]
+  }
   saveWearLogs(logs)
 
   const addedIds = nextIds.filter((id) => !oldIds.includes(id))
@@ -642,6 +647,10 @@ function getOutfits() {
   const normalized = outfits.map((outfit) => {
     const seen = new Set()
     const pieces = (Array.isArray(outfit.pieces) ? outfit.pieces : []).reduce((list, piece) => {
+      if (!isPlainObject(piece)) {
+        changed = true
+        return list
+      }
       const item = itemMap.get(piece.itemId)
       if (!piece.itemId || !item || seen.has(piece.itemId)) {
         changed = true
@@ -684,6 +693,7 @@ function upsertOutfit(outfit) {
   const seen = new Set()
   const itemMap = new Map(getItems().map((item) => [item.id, item]))
   const pieces = (Array.isArray(outfit.pieces) ? outfit.pieces : []).reduce((list, piece) => {
+    if (!isPlainObject(piece)) return list
     const item = itemMap.get(piece.itemId)
     if (!piece.itemId || !item || seen.has(piece.itemId)) return list
     seen.add(piece.itemId)
@@ -891,16 +901,16 @@ function convertWishlistToItem(id) {
     return { ok: false, message: '愿望不存在' }
   }
   const itemId = upsertItem({
-    imageUrl: wish.imageUrl || '',
-    name: wish.name || '未命名衣物',
-    category: wish.category || '其他',
-    price: wish.expectedPrice === '' || wish.expectedPrice === undefined ? '' : Number(wish.expectedPrice) || '',
+    imageUrl: sanitizeText(wish.imageUrl),
+    name: sanitizeText(wish.name).trim() || '未命名衣物',
+    category: sanitizeText(wish.category).trim() || '其他',
+    price: sanitizePrice(wish.expectedPrice),
     color: '',
     seasons: [],
     occasions: [],
     purchaseDate: formatLocalDate(new Date()),
     status: '',
-    note: wish.note || ''
+    note: sanitizeText(wish.note)
   })
   saveWishlist(getWishlist().filter((item) => item.id !== id))
   return { ok: true, itemId }
@@ -912,16 +922,16 @@ function purchaseWishlistItem(id) {
     return { ok: false, message: '愿望不存在' }
   }
   const itemId = upsertItem({
-    name: wish.name || '未命名衣物',
-    category: wish.category || '其他',
-    price: wish.expectedPrice === '' || wish.expectedPrice === undefined ? '' : Number(wish.expectedPrice) || 0,
-    imageUrl: wish.imageUrl || '',
+    name: sanitizeText(wish.name).trim() || '未命名衣物',
+    category: sanitizeText(wish.category).trim() || '其他',
+    price: sanitizePrice(wish.expectedPrice),
+    imageUrl: sanitizeText(wish.imageUrl),
     color: '',
     seasons: [],
     occasions: [],
     purchaseDate: formatLocalDate(new Date()),
     status: '偶尔穿',
-    note: wish.note || ''
+    note: sanitizeText(wish.note)
   })
   saveWishlist(getWishlist().filter((item) => item.id !== id))
   return { ok: true, itemId }
@@ -984,6 +994,104 @@ function toArray(value) {
 
 function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+/** 备份字段归一化：字符串字段容忍数字，其余类型归为空串，避免畸形备份入库后页面崩溃 */
+function sanitizeText(value) {
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  return ''
+}
+
+function sanitizePrice(value) {
+  if (value === '' || value === null || value === undefined) return ''
+  if (typeof value === 'boolean') return ''
+  if (Array.isArray(value) || (typeof value === 'object' && value !== null)) return ''
+  const text = String(value).trim()
+  if (!text) return ''
+  const price = Number(text)
+  if (!Number.isFinite(price) || price < 0) return ''
+  return price
+}
+
+function sanitizeStringList(value) {
+  return (Array.isArray(value) ? value : [])
+    .map((entry) => sanitizeText(entry).trim())
+    .filter(Boolean)
+}
+
+function sanitizeId(value) {
+  if (typeof value === 'string') return value.trim()
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  return ''
+}
+
+function sanitizeItemRecord(record) {
+  return {
+    ...record,
+    id: sanitizeId(record.id),
+    name: sanitizeText(record.name),
+    category: sanitizeText(record.category),
+    color: sanitizeText(record.color),
+    status: sanitizeText(record.status),
+    note: sanitizeText(record.note),
+    purchaseDate: sanitizeText(record.purchaseDate),
+    lastWornDate: sanitizeText(record.lastWornDate),
+    imageUrl: sanitizeText(record.imageUrl),
+    price: sanitizePrice(record.price),
+    occasions: sanitizeStringList(record.occasions),
+    seasons: sanitizeStringList(record.seasons)
+  }
+}
+
+function sanitizeWishlistRecord(record) {
+  return {
+    ...record,
+    id: sanitizeId(record.id),
+    name: sanitizeText(record.name),
+    category: sanitizeText(record.category),
+    note: sanitizeText(record.note),
+    imageUrl: sanitizeText(record.imageUrl),
+    expectedPrice: sanitizePrice(record.expectedPrice),
+    matchItemId: sanitizeText(record.matchItemId)
+  }
+}
+
+function sanitizeOutfitRecord(record) {
+  const pieces = (Array.isArray(record.pieces) ? record.pieces : [])
+    .filter((piece) => isPlainObject(piece) && sanitizeText(piece.itemId).trim())
+    .map((piece) => ({ ...piece, category: sanitizeText(piece.category), itemId: sanitizeText(piece.itemId).trim() }))
+  return {
+    ...record,
+    id: sanitizeId(record.id),
+    name: sanitizeText(record.name),
+    occasion: sanitizeText(record.occasion),
+    note: sanitizeText(record.note),
+    pieces
+  }
+}
+
+function sanitizeBackup(backup) {
+  backup.items = backup.items.map(sanitizeItemRecord)
+  backup.wishlist = backup.wishlist.map(sanitizeWishlistRecord)
+  backup.outfits = backup.outfits.map(sanitizeOutfitRecord)
+  if (Array.isArray(backup.categories)) {
+    backup.categories = sanitizeStringList(backup.categories)
+  }
+  if (Array.isArray(backup.occasions)) {
+    backup.occasions = sanitizeStringList(backup.occasions)
+  }
+  if (isPlainObject(backup.outfitPlans)) {
+    Object.keys(backup.outfitPlans).forEach((date) => {
+      const plan = backup.outfitPlans[date]
+      backup.outfitPlans[date] = {
+        ...plan,
+        outfitId: sanitizeText(plan.outfitId).trim(),
+        note: sanitizeText(plan.note)
+      }
+    })
+  }
+  return backup
 }
 
 function getImageExtension(filePath) {
@@ -1095,7 +1203,7 @@ function validateBackup(input) {
   ))) {
     return { ok: false, message: '备份缺少图片内容' }
   }
-  return { ok: true, backup }
+  return { ok: true, backup: sanitizeBackup(backup) }
 }
 
 function mergeRecords(local, incoming, normalize, preserveImage, imageAuthoritative) {
@@ -1154,25 +1262,52 @@ function mergeBackupData(backup) {
       delete mergedWearLogs[date]
       return
     }
-    mergedWearLogs[date] = normalizeIdList(mergedWearLogs[date]).filter((id) => itemIds.has(id))
+    const next = normalizeIdList(mergedWearLogs[date]).filter((id) => itemIds.has(id))
+    if (next.length) {
+      mergedWearLogs[date] = next
+    } else {
+      delete mergedWearLogs[date]
+    }
   })
   const localWearLogs = wx.getStorageSync(WEAR_LOG_STORAGE_KEY)
   if (isPlainObject(localWearLogs) || isPlainObject(backup.wearLogs)) {
     mergedItems = reconcileWearStats(mergedItems, mergedWearLogs)
   }
 
-  wx.setStorageSync(STORAGE_KEY, mergedItems)
-  wx.setStorageSync(OUTFIT_STORAGE_KEY, mergedOutfits)
-  wx.setStorageSync(WISHLIST_STORAGE_KEY, mergedWishlist)
-  wx.setStorageSync(WEAR_LOG_STORAGE_KEY, mergedWearLogs)
-  wx.setStorageSync(OUTFIT_PLAN_STORAGE_KEY, mergedOutfitPlans)
-  wx.setStorageSync(CATEGORY_STORAGE_KEY, categories)
-  wx.setStorageSync(CATEGORY_MANAGED_KEY, true)
-  wx.setStorageSync(OCCASION_STORAGE_KEY, occasions)
-  wx.setStorageSync(OCCASION_MANAGED_KEY, true)
-  getOutfits()
-  getOutfitPlans()
-  getWishlist()
+  // 写入前快照：配额等写入失败时回滚，避免留下半合并状态
+  const mergeStorageKeys = [
+    STORAGE_KEY,
+    OUTFIT_STORAGE_KEY,
+    WISHLIST_STORAGE_KEY,
+    WEAR_LOG_STORAGE_KEY,
+    OUTFIT_PLAN_STORAGE_KEY,
+    CATEGORY_STORAGE_KEY,
+    CATEGORY_MANAGED_KEY,
+    OCCASION_STORAGE_KEY,
+    OCCASION_MANAGED_KEY
+  ]
+  const storageSnapshot = mergeStorageKeys.map((key) => ({ key, value: wx.getStorageSync(key) }))
+  try {
+    wx.setStorageSync(STORAGE_KEY, mergedItems)
+    wx.setStorageSync(OUTFIT_STORAGE_KEY, mergedOutfits)
+    wx.setStorageSync(WISHLIST_STORAGE_KEY, mergedWishlist)
+    wx.setStorageSync(WEAR_LOG_STORAGE_KEY, mergedWearLogs)
+    wx.setStorageSync(OUTFIT_PLAN_STORAGE_KEY, mergedOutfitPlans)
+    wx.setStorageSync(CATEGORY_STORAGE_KEY, categories)
+    wx.setStorageSync(CATEGORY_MANAGED_KEY, true)
+    wx.setStorageSync(OCCASION_STORAGE_KEY, occasions)
+    wx.setStorageSync(OCCASION_MANAGED_KEY, true)
+    getOutfits()
+    getOutfitPlans()
+    getWishlist()
+  } catch (error) {
+    storageSnapshot.forEach((entry) => {
+      try {
+        wx.setStorageSync(entry.key, entry.value)
+      } catch (restoreError) { /* 回滚尽力而为 */ }
+    })
+    throw error
+  }
 
   const usedImages = new Set([...getItems(), ...getWishlist()].map((item) => item.imageUrl).filter(Boolean))
   ;[...localItems, ...localWishlist].forEach((item) => {
@@ -1296,12 +1431,39 @@ async function importDataWithImages(input) {
   }
 }
 
+/** 删除 USER_DATA_PATH 下残留的备份导出文件（exportBackupFile 生成），清空数据时一并清掉 */
+function removeBackupFiles() {
+  const userDataPath = wx.env && wx.env.USER_DATA_PATH
+  const fs = typeof wx.getFileSystemManager === 'function' ? wx.getFileSystemManager() : null
+  if (!userDataPath || !fs || typeof fs.readdir !== 'function' || typeof fs.unlink !== 'function') return
+  fs.readdir({
+    dirPath: userDataPath,
+    success: (res) => {
+      (res.files || []).forEach((name) => {
+        if (/^wardrobe-backup-.*\.json$/.test(name)) {
+          fs.unlink({ filePath: `${userDataPath}/${name}`, fail() {} })
+        }
+      })
+    },
+    fail() {}
+  })
+}
+
+function removeRestoreImageDirectory() {
+  const userDataPath = wx.env && wx.env.USER_DATA_PATH
+  const fs = typeof wx.getFileSystemManager === 'function' ? wx.getFileSystemManager() : null
+  if (!userDataPath || !fs || typeof fs.rmdir !== 'function') return
+  fs.rmdir({ dirPath: `${userDataPath}/wardrobe-images`, recursive: true, fail() {} })
+}
+
 function clearAllData() {
   ;[...getItems(), ...getWishlist()].forEach((item) => {
     if (item && item.imageUrl) {
       removeImageFile(item.imageUrl)
     }
   })
+  removeBackupFiles()
+  removeRestoreImageDirectory()
   wx.setStorageSync(STORAGE_KEY, [])
   wx.setStorageSync(OUTFIT_STORAGE_KEY, [])
   wx.setStorageSync(WISHLIST_STORAGE_KEY, [])
@@ -1480,6 +1642,7 @@ module.exports = {
   seasons,
   statuses,
   defaultOccasions,
+  sanitizeText,
   persistImage,
   removeImageFile,
   removeImageFileIfUnused,

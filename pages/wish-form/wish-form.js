@@ -373,7 +373,7 @@ Page({
   saveWish() {
     const form = this.data.form
     const priceText = String(form.expectedPrice).trim()
-    if (!form.name.trim() || !form.category) {
+    if (!wardrobe.sanitizeText(form.name).trim() || !wardrobe.sanitizeText(form.category).trim()) {
       wx.showToast({
         title: '请填写名字和种类',
         icon: 'none'
@@ -388,14 +388,23 @@ Page({
       return
     }
 
-    wardrobe.upsertWishlistItem({
-      ...form,
-      name: form.name.trim(),
-      expectedPrice: priceText === '' ? '' : Number(Number(priceText).toFixed(2)),
-      note: form.note.trim()
-    })
-    if (this.data.isEditing && this.originalImageUrl && this.originalImageUrl !== form.imageUrl) {
-      wardrobe.removeImageFileIfUnused(this.originalImageUrl)
+    try {
+      wardrobe.upsertWishlistItem({
+        ...form,
+        name: wardrobe.sanitizeText(form.name).trim(),
+        category: wardrobe.sanitizeText(form.category).trim(),
+        expectedPrice: priceText === '' ? '' : Number(Number(priceText).toFixed(2)),
+        note: wardrobe.sanitizeText(form.note).trim()
+      })
+      if (this.data.isEditing && this.originalImageUrl && this.originalImageUrl !== form.imageUrl) {
+        wardrobe.removeImageFileIfUnused(this.originalImageUrl)
+      }
+    } catch (error) {
+      wx.showToast({
+        title: '保存失败，请检查本机存储空间',
+        icon: 'none'
+      })
+      return
     }
     this.originalImageUrl = ''
     this.pendingImageUrl = ''

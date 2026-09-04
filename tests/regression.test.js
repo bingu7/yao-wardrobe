@@ -379,6 +379,22 @@ test('setWearLog: 重复 id 去重/非数组输入', () => {
   wardrobe.setWearLog('2026-07-02', 'i1') // 字符串输入 -> 空
   assert.deepStrictEqual(wardrobe.getWearLog('2026-07-02'), [])
 })
+test('setWearLog: 清空当天记录时删除日期键（不残留空数组）', () => {
+  resetStorage()
+  store.set('privateWardrobeItems', [{ id: 'i1', name: 'A', category: '上衣', occasions: [], seasons: [] }])
+  wardrobe.setWearLog('2026-07-01', ['i1'])
+  assert.ok('2026-07-01' in wardrobe.getWearLogs())
+  const result = wardrobe.setWearLog('2026-07-01', [])
+  assert.strictEqual(result.ok, true)
+  assert.deepStrictEqual(store.get('privateWardrobeWearLogs'), {})
+})
+test('deleteItems: 删除衣物后不残留空的穿着记录键', () => {
+  resetStorage()
+  const id = wardrobe.upsertItem({ name: 'A', category: '上衣' })
+  wardrobe.markWorn(id, '2026-07-01')
+  wardrobe.deleteItem(id)
+  assert.deepStrictEqual(store.get('privateWardrobeWearLogs'), {})
+})
 test('markWorn: 正常记录今日', () => {
   resetStorage()
   store.set('privateWardrobeItems', [{ id: 'i1', name: 'A', category: '上衣', occasions: [], seasons: [] }])
@@ -852,6 +868,57 @@ test('validateBackup: 图片引用缺失拒绝', () => {
     images: { r1: { data: '' } }
   }).ok, false)
 })
+test('validateBackup: 畸形字段类型归一化（name 对象→空串、price 非法→空串）', () => {
+  resetStorage()
+  const result = wardrobe.validateBackup({
+    version: 4,
+    items: [{ id: 'x1', name: { hack: 1 }, price: '免费', note: ['a'], occasions: ['通勤', 5, null], seasons: '夏', category: 7 }],
+    outfits: [{ id: 'o1', name: { x: 1 }, pieces: [{ itemId: 5, category: null }, { itemId: '' }, 'junk'] }],
+    wishlist: [{ id: 'w1', name: 123, expectedPrice: 'abc', matchItemId: { bad: 1 } }],
+    images: {}
+  })
+  assert.strictEqual(result.ok, true)
+  assert.strictEqual(result.backup.items[0].name, '')
+  assert.strictEqual(result.backup.items[0].price, '')
+  assert.strictEqual(result.backup.items[0].note, '')
+  assert.strictEqual(result.backup.items[0].category, '7')
+  assert.deepStrictEqual(result.backup.items[0].occasions, ['通勤', '5'])
+  assert.deepStrictEqual(result.backup.items[0].seasons, [])
+  assert.strictEqual(result.backup.outfits[0].name, '')
+  assert.deepStrictEqual(result.backup.outfits[0].pieces, [{ itemId: '5', category: '' }])
+  assert.strictEqual(result.backup.wishlist[0].name, '123')
+  assert.strictEqual(result.backup.wishlist[0].expectedPrice, '')
+  assert.strictEqual(result.backup.wishlist[0].matchItemId, '')
+})
+test('validateBackup: 合法数值价格保留、0 不被清空', () => {
+  resetStorage()
+  const result = wardrobe.validateBackup({
+    version: 3,
+    items: [{ id: 'p1', name: 'A', price: 159.5 }, { id: 'p2', name: 'B', price: 0 }, { id: 'p3', name: 'C', price: '' }],
+    outfits: [],
+    wishlist: []
+  })
+  assert.strictEqual(result.ok, true)
+  assert.strictEqual(result.backup.items[0].price, 159.5)
+  assert.strictEqual(result.backup.items[1].price, 0)
+  assert.strictEqual(result.backup.items[2].price, '')
+})
+test('importData: 畸形备份入库后字段为安全类型，页面可正常编辑', () => {
+  resetStorage()
+  const result = wardrobe.importData({
+    version: 3,
+    items: [{ id: 'x1', name: { hack: 1 }, price: '免费', updatedAt: '2026-01-01T00:00:00Z' }],
+    outfits: [],
+    wishlist: [{ id: 'w1', name: ['arr'], expectedPrice: { v: 1 }, updatedAt: '2026-01-01T00:00:00Z' }]
+  })
+  assert.strictEqual(result.ok, true)
+  const item = wardrobe.getItem('x1')
+  assert.strictEqual(item.name, '') // add.js saveItem 的 form.name.trim() 不再抛 TypeError
+  assert.strictEqual(item.price, '')
+  const wish = wardrobe.getWishlistItem('w1')
+  assert.strictEqual(wish.name, '')
+  assert.strictEqual(wish.expectedPrice, '')
+})
 test('importData: JSON 字符串导入合并', () => {
   resetStorage()
   store.set('privateWardrobeItems', [{ id: 'local', name: '本地', category: '上衣', occasions: [], seasons: [] }])
@@ -904,6 +971,20 @@ test('clearAllData: 清空全部并重置分类', () => {
   assert.deepStrictEqual(wardrobe.getOutfitPlans(), {})
   assert.deepStrictEqual(wardrobe.getCustomCategories(), wardrobe.defaultCategories)
   assert.deepStrictEqual(wardrobe.getCustomOccasions(), wardrobe.defaultOccasions)
+})
+test('clearAllData: 一并删除导出的备份文件与恢复图片目录', () => {
+  resetStorage()
+  fileContents.set('wxfile://usr/wardrobe-backup-2026-08-22.json', '{"version":4}')
+  fileContents.set('wxfile://usr/wardrobe-backup-2026-08-01.json', '{"version":4}')
+  fileContents.set('wxfile://usr/wardrobe-images/restore-1.jpg', 'x')
+  fileContents.set('wxfile://usr/wardrobe-images/restore-2.jpg', 'y')
+  fileContents.set('wxfile://usr/keep-me.txt', 'other')
+  wardrobe.clearAllData()
+  assert.ok(!fileContents.has('wxfile://usr/wardrobe-backup-2026-08-22.json'))
+  assert.ok(!fileContents.has('wxfile://usr/wardrobe-backup-2026-08-01.json'))
+  assert.ok(!fileContents.has('wxfile://usr/wardrobe-images/restore-1.jpg'))
+  assert.ok(!fileContents.has('wxfile://usr/wardrobe-images/restore-2.jpg'))
+  assert.ok(fileContents.has('wxfile://usr/keep-me.txt'))
 })
 
 // ============ 12. 图片管理 ============
@@ -1140,6 +1221,36 @@ async function run() {
     resetStorage()
     const path = await wardrobe.persistImage('temp://photo.jpg')
     assert.strictEqual(path, 'saved://temp://photo.jpg')
+  })
+  await testAsync('importDataWithImages: 存储配额中途耗尽时回滚，不留半合并状态', async () => {
+    resetStorage()
+    wardrobe.upsertItem({ name: '本地衣物', category: '上衣' })
+    const before = {
+      items: store.get('privateWardrobeItems'),
+      wearLogs: store.get('privateWardrobeWearLogs'),
+      categories: store.get('privateWardrobeCustomCategories')
+    }
+    const originalSet = global.wx.setStorageSync
+    global.wx.setStorageSync = function patchedSet(key, value) {
+      if (key === 'privateWardrobeWearLogs') {
+        throw new Error('setStorageSync:fail exceed storage max size')
+      }
+      return originalSet.call(this, key, value)
+    }
+    const result = await wardrobe.importDataWithImages({
+      version: 4,
+      items: [{ id: 'y1', name: '备份衣物', category: '下装', updatedAt: '2026-02-02T00:00:00Z' }],
+      outfits: [],
+      wishlist: [],
+      images: {}
+    })
+    global.wx.setStorageSync = originalSet
+    assert.strictEqual(result.ok, false)
+    assert.ok(result.message)
+    assert.deepStrictEqual(store.get('privateWardrobeItems'), before.items)
+    assert.ok(!store.get('privateWardrobeItems').some((item) => item.id === 'y1'))
+    assert.deepStrictEqual(store.get('privateWardrobeWearLogs') || {}, before.wearLogs || {})
+    assert.deepStrictEqual(store.get('privateWardrobeCustomCategories'), before.categories)
   })
 
   console.log('')

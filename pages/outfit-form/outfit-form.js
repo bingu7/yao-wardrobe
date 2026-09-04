@@ -95,9 +95,9 @@ Page({
     this.setData({
       isEditing: true,
       form: {
-        name: outfit.name || '',
-        occasion: outfit.occasion || '',
-        note: outfit.note || ''
+        name: wardrobe.sanitizeText(outfit.name),
+        occasion: wardrobe.sanitizeText(outfit.occasion),
+        note: wardrobe.sanitizeText(outfit.note)
       },
       pieces: pieces.length ? pieces : [buildPieceData(items, allCategories, '')],
       editingId: keepId ? outfit.id : undefined,
@@ -237,6 +237,11 @@ Page({
     const name = event.currentTarget.dataset.name
     const index = this.data.editingItemPieceIndex
     if (index < 0) return
+    if (id && this.data.pieces.some((piece, pieceIndex) => pieceIndex !== index && piece.itemId === id)) {
+      // 同一件衣物在穿搭里只能出现一次，静默去重会让用户以为存了 N 件
+      wx.showToast({ title: '「' + name + '」已在穿搭中', icon: 'none' })
+      return
+    }
     const piece = this.data.pieces[index]
     const optIndex = piece.itemOptions.findIndex((opt) => opt.id === id)
     const pieces = this.data.pieces.map((p, i) =>
@@ -251,7 +256,8 @@ Page({
 
   saveOutfit() {
     const form = this.data.form
-    if (!form.name.trim()) {
+    const name = wardrobe.sanitizeText(form.name).trim()
+    if (!name) {
       wx.showToast({ title: '请填写穿搭名字', icon: 'none' })
       return
     }
@@ -268,8 +274,8 @@ Page({
     wardrobe.upsertOutfit({
       ...form,
       ...(this.data.editingId ? { id: this.data.editingId } : {}),
-      name: form.name.trim(),
-      note: form.note.trim(),
+      name,
+      note: wardrobe.sanitizeText(form.note).trim(),
       pieces: selectedPieces
     })
 

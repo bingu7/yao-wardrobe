@@ -52,6 +52,26 @@ global.wx = {
         fileContents.delete(options.filePath)
         unlinkedFiles.push(options.filePath)
         if (options.success) options.success()
+      },
+      readdir(options) {
+        // 返回 USER_DATA_PATH 顶层条目名（与真实 readdir 一致：只有名字，不含路径）
+        if (options.dirPath !== 'wxfile://usr') {
+          if (options.fail) options.fail({ errMsg: 'readdir:fail no such file or directory' })
+          return
+        }
+        const names = new Set()
+        fileContents.forEach((_, path) => {
+          const rest = path.replace(/^wxfile:\/\/usr\//, '')
+          if (rest && rest !== path) names.add(rest.split('/')[0])
+        })
+        options.success({ files: Array.from(names) })
+      },
+      rmdir(options) {
+        const prefix = `${options.dirPath}/`
+        Array.from(fileContents.keys()).forEach((path) => {
+          if (path.indexOf(prefix) === 0) fileContents.delete(path)
+        })
+        if (options.success) options.success()
       }
     }
   },

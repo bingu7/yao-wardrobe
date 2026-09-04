@@ -88,6 +88,11 @@ Page({
     }
 
     if (this.hasVisited) {
+      // “添加”tab 语义是新增：用户切走再切回时结束遗留的编辑会话，避免误覆盖原衣物；
+      // 程序退后台后返回（如来电、切微信）不算切走，保留编辑内容
+      if (this.data.isEditing && !this.wasHiddenByAppBackground()) {
+        this.endEditSession()
+      }
       this.refreshOccasions(this.data.form.occasions || [])
       return
     }
@@ -105,6 +110,38 @@ Page({
       occasionOptions: this.buildOccasionOptions([])
     })
     this.refreshOccasions([])
+  },
+
+  onHide() {
+    this.pageHiddenAt = Date.now()
+  },
+
+  wasHiddenByAppBackground() {
+    let app = null
+    try {
+      app = typeof getApp === 'function' ? getApp() : null
+    } catch (error) {
+      app = null
+    }
+    const appHiddenAt = (app && app.globalData && Number(app.globalData.backgroundedAt)) || 0
+    return Boolean(this.pageHiddenAt && appHiddenAt && Math.abs(appHiddenAt - this.pageHiddenAt) < 100)
+  },
+
+  endEditSession() {
+    this.cleanupPendingImage()
+    this.originalImageUrl = ''
+    this.setData({
+      isEditing: false,
+      form: emptyForm(),
+      errors: emptyErrors(),
+      ...emptyPickerIndexes(),
+      customCategory: '',
+      customOccasion: '',
+      seasonOptions: this.buildSeasonOptions([]),
+      occasionOptions: this.buildOccasionOptions([])
+    })
+    this.refreshOccasions([])
+    wx.showToast({ title: '已退出编辑，可添加新衣物', icon: 'none' })
   },
 
   refreshCategories(selectedCategory) {
@@ -647,10 +684,10 @@ Page({
     const errors = emptyErrors()
     const priceText = String(form.price).trim()
 
-    if (!form.name.trim()) {
+    if (!wardrobe.sanitizeText(form.name).trim()) {
       errors.name = '请填写衣物名字'
     }
-    if (!form.category) {
+    if (!wardrobe.sanitizeText(form.category).trim()) {
       errors.category = '请选择衣物种类'
     }
     if (priceText !== '' && (!/^\d+(\.\d{1,2})?$/.test(priceText) || Number(priceText) < 0)) {
@@ -680,13 +717,24 @@ Page({
     const wasEditing = this.data.isEditing
     const continueAdding = event.currentTarget.dataset.continue === true || event.currentTarget.dataset.continue === 'true'
     const form = this.data.form
-    const id = wardrobe.upsertItem({
-      ...form,
-      name: form.name.trim(),
-      price: form.price === '' ? '' : Number(Number(form.price).toFixed(2))
-    })
-    if (wasEditing && this.originalImageUrl && this.originalImageUrl !== form.imageUrl) {
-      wardrobe.removeImageFileIfUnused(this.originalImageUrl)
+    try {
+      wardrobe.upsertItem({
+        ...form,
+        name: wardrobe.sanitizeText(form.name).trim(),
+        category: wardrobe.sanitizeText(form.category).trim(),
+        price: form.price === '' ? '' : Number(Number(form.price).toFixed(2))
+      })
+      if (wasEditing && this.originalImageUrl && this.originalImageUrl !== form.imageUrl) {
+        wardrobe.removeImageFileIfUnused(this.originalImageUrl)
+      }
+    } catch (error) {
+      // 存储配额等异常：必须复位 isSaving，否则保存按钮永久失效
+      this.setData({ isSaving: false })
+      wx.showToast({
+        title: '保存失败，请检查本机存储空间',
+        icon: 'none'
+      })
+      return
     }
     this.originalImageUrl = ''
     this.pendingImageUrl = ''

@@ -312,7 +312,8 @@ Page({
       confirmColor: '#7b3b32',
       success: async (res) => {
         if (!res.confirm) return
-        wx.showLoading({ title: '正在恢复图片', mask: true })
+        const hasImages = [...data.items, ...data.wishlist].some((record) => record.imageRef)
+        wx.showLoading({ title: hasImages ? '正在恢复图片' : '正在恢复数据', mask: true })
         const result = await wardrobe.importDataWithImages(data)
         wx.hideLoading()
         if (!result.ok) {
@@ -334,6 +335,14 @@ Page({
       success: (res) => {
         if (!res.confirm) return
         wardrobe.clearAllData()
+        // clearAllData 会删除已导出的备份文件，页面里保留的备份入口一并作废
+        this.preparedBackupFilePath = ''
+        this.preparedBackupText = ''
+        this.setData({
+          backupFileReady: false,
+          backupFileName: '',
+          backupActionMessage: ''
+        })
         wx.showToast({ title: '已清空', icon: 'success' })
       }
     })
